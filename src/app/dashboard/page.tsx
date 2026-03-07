@@ -51,21 +51,39 @@ export default async function DashboardPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
           <div>
-            <div className="flex items-center gap-2 text-primary mb-2">
-               <LayoutDashboard className="w-5 h-5" />
-               <span className="text-xs font-black uppercase tracking-[0.2em]">Professional Dashboard</span>
-            </div>
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">Welcome back, <span className="text-primary italic">Artist</span></h1>
-            <p className="text-muted-foreground mt-2 text-lg">Manage your {profile.role} presence and active opportunities.</p>
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
+              Bienvenue, <span className="text-primary italic">{profile.full_name || (profile.role === 'talent' ? 'Artiste' : 'Recruteur')}</span>
+            </h1>
+            <p className="text-muted-foreground mt-2 text-lg flex items-center gap-2">
+              <span>Gérez votre présence {profile.role === 'talent' ? 'artistique' : 'professionnelle'}.</span>
+              <span className="text-xs bg-slate-800 px-2 py-0.5 rounded font-arabic" dir="rtl">مرحباً بك في لوحة التحكم</span>
+            </p>
           </div>
           
-          {profile.role === 'recruiter' && (
-            <Link href="/dashboard/recruiter/post-casting">
-              <Button className="rounded-xl bg-primary text-primary-foreground h-14 px-8 font-bold text-lg shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:opacity-90 transition-all">
-                <PlusCircle className="w-6 h-6 mr-2" /> Post a Casting
-              </Button>
-            </Link>
-          )}
+          <div className="flex flex-wrap gap-4">
+            {profile.role === 'talent' && (
+              <Link href="/castings">
+                <Button className="rounded-xl bg-primary text-black h-14 px-8 font-bold text-lg shadow-lg hover:opacity-90">
+                  <Film className="w-6 h-6 mr-2" /> Voir les Castings <span className="ml-2 text-xs opacity-70 font-arabic" dir="rtl">تصفح الأدوار</span>
+                </Button>
+              </Link>
+            )}
+            
+            {profile.role === 'recruiter' && (
+              <>
+                <Link href="/talents">
+                  <Button variant="outline" className="rounded-xl border-primary/20 bg-primary/5 text-primary h-14 px-8 font-bold text-lg hover:bg-primary/10">
+                    <UserCircle className="w-6 h-6 mr-2" /> Base de Talents <span className="ml-2 text-xs opacity-70 font-arabic" dir="rtl">قاعدة المواهب</span>
+                  </Button>
+                </Link>
+                <Link href="/dashboard/recruiter/post-casting">
+                  <Button className="rounded-xl bg-primary text-black h-14 px-8 font-bold text-lg shadow-lg hover:opacity-90">
+                    <PlusCircle className="w-6 h-6 mr-2" /> Publier un Casting <span className="ml-2 text-xs opacity-70 font-arabic" dir="rtl">نشر إعلان</span>
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Stats Grid */}

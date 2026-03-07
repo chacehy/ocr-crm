@@ -1,22 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { createClient } from '@/lib/supabase/client'
+import { motion } from 'framer-motion'
+import { 
+  Loader2, 
+  Film, 
+  ArrowLeft, 
+  PlusCircle, 
+  MapPin, 
+  Users, 
+  Calendar, 
+  AlertTriangle 
+} from 'lucide-react'
+import Link from 'next/link'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { createClient } from '@/lib/supabase/client'
-import { motion } from 'framer-motion'
-import { Film, ArrowLeft, PlusCircle, MapPin, Users, Calendar } from 'lucide-react'
-import Link from 'next/link'
 
 const WILAYAS = ['Alger', 'Oran', 'Constantine', 'Annaba', 'Blida', 'Batna', 'Sétif', 'Side Bel Abbès', 'Tlemcen', 'Béjaïa']
 const PROJECT_TYPES = ['Film', 'Series', 'Commercial', 'Music Video', 'Theatre', 'Photoshoot']
-
 export default function PostCastingPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -30,8 +39,57 @@ export default function PostCastingPage() {
     gender_pref: 'any',
     age_min: 18,
     age_max: 60,
-    listing_duration_days: 30
   })
+
+  const [status, setStatus] = useState<{ is_active: boolean; reason: string; role: string; subtype: string } | null>(null)
+  const [checking, setChecking] = useState(true)
+
+  useEffect(() => {
+    checkStatus()
+  }, [])
+
+  async function checkStatus() {
+    setChecking(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      router.push('/login')
+      return
+    }
+
+    // Call the RPC function we created
+    const { data: statusData, error } = await supabase.rpc('check_recruiter_active', { p_user_id: user.id })
+    
+    if (error) {
+      console.error('Error checking status:', error)
+      toast.error('Erreur lors de la vérification du compte.')
+    } else {
+      // Get role info to decide if we allow posting
+      const { data: profile } = await supabase.from('profiles').select('role, recruiter_subtype').eq('id', user.id).single()
+      
+      const res = statusData[0]
+      setStatus({ ...res, role: profile?.role, subtype: profile?.recruiter_subtype })
+
+      if (!res.is_active) {
+        toast.error(res.reason)
+        // We allow them to SEE the page but they can't submit? 
+        // Or better: redirect to pricing if not active.
+        setTimeout(() => router.push('/pricing'), 2000)
+      } else if (profile?.recruiter_subtype === 'freelance') {
+        // Enforce 1 active casting for Freelance
+        const { count } = await supabase
+          .from('castings')
+          .select('*', { count: 'exact', head: true })
+          .eq('recruiter_id', user.id)
+          .eq('status', 'open')
+        
+        if (count && count >= 1) {
+          toast.error("Limite atteinte: Les freelances ne peuvent avoir qu'un seul casting actif.")
+          setTimeout(() => router.push('/dashboard'), 2000)
+        }
+      }
+    }
+    setChecking(false)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,6 +113,29 @@ export default function PostCastingPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+      </div>
+    )
+  }
+
+  if (status && !status.is_active) {
+    return (
+      <div className="min-h-screen bg-black text-white p-12 flex flex-col items-center justify-center text-center">
+        <AlertTriangle className="w-16 h-16 text-amber-500 mb-6" />
+        <h1 className="text-3xl font-bold mb-4 italic">Accès Restreint</h1>
+        <p className="text-slate-400 max-w-md mb-8">
+          Vous devez avoir un pack "Casting Express" ou un abonnement actif pour publier un nouveau casting.
+        </p>
+        <Button asChild className="bg-amber-500 text-black px-8 py-6 rounded-xl font-bold">
+          <Link href="/pricing">Voir les offres</Link>
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -165,13 +246,15 @@ export default function PostCastingPage() {
 
                 <div className="grid gap-3">
                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                     <Calendar className="w-4 h-4" /> Listing Visible For (Days)
+                     <Calendar className="w-4 h-4" /> Listing Visible For
                    </Label>
-                   <Input type="number" value={formData.listing_duration_days} onChange={e => setFormData({ ...formData, listing_duration_days: parseInt(e.target.value) })} className="rounded-xl h-14 bg-background border-border text-lg" />
+                   <div className="h-14 px-4 flex items-center bg-muted/20 border border-border rounded-xl text-muted-foreground italic">
+                     {status?.subtype === 'freelance' ? '7-10 jours (Inclus dans le pack)' : '30 jours (Standard Agency)'}
+                   </div>
                 </div>
               </CardContent>
               <CardFooter className="p-10 border-t border-border/40 bg-muted/20 flex justify-end">
-                <Button type="submit" className="rounded-2xl bg-primary text-primary-foreground h-16 px-12 font-bold text-xl shadow-[0_4px_30px_rgba(251,191,36,0.3)] hover:opacity-90 transition-all" disabled={loading}>
+                <Button type="submit" className="rounded-2xl bg-amber-500 text-black h-16 px-12 font-bold text-xl shadow-[0_4px_30px_rgba(251,191,36,0.3)] hover:opacity-90 transition-all" disabled={loading}>
                   {loading ? 'Publishing...' : 'Launch Casting Call'}
                 </Button>
               </CardFooter>
