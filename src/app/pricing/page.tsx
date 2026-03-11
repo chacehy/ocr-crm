@@ -159,7 +159,7 @@ export default function PricingPage() {
 
         <div className="mt-20 text-center">
           <p className="text-slate-500 text-sm">
-            Paiement sécurisé via SATIM / CIB par <strong>Slick-Pay</strong>.
+            Paiement sécurisé via SATIM / CIB / Edahabia par <strong>Chargily</strong>.
             <br />
             Aucune coordonnée bancaire n'est stockée sur nos serveurs.
           </p>

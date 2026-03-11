@@ -62,11 +62,18 @@ export default async function DashboardPage() {
           
           <div className="flex flex-wrap gap-4">
             {profile.role === 'talent' && (
-              <Link href="/castings">
-                <Button className="rounded-xl bg-primary text-black h-14 px-8 font-bold text-lg shadow-lg hover:opacity-90">
-                  <Film className="w-6 h-6 mr-2" /> Voir les Castings <span className="ml-2 text-xs opacity-70 font-arabic" dir="rtl">تصفح الأدوار</span>
-                </Button>
-              </Link>
+              <div className="flex gap-4">
+                <Link href="/dashboard/talent/edit-profile">
+                  <Button variant="outline" className="rounded-xl border-primary/20 bg-primary/5 text-primary h-14 px-8 font-bold text-lg hover:bg-primary/10">
+                    <Settings className="w-6 h-6 mr-2" /> Modifier Profil
+                  </Button>
+                </Link>
+                <Link href="/castings">
+                  <Button className="rounded-xl bg-primary text-black h-14 px-8 font-bold text-lg shadow-lg hover:opacity-90">
+                    <Film className="w-6 h-6 mr-2" /> Voir les Castings <span className="ml-2 text-xs opacity-70 font-arabic" dir="rtl">تصفح الأدوار</span>
+                  </Button>
+                </Link>
+              </div>
             )}
             
             {profile.role === 'recruiter' && (

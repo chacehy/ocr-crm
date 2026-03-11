@@ -1,0 +1,52 @@
+import { ChargilyClient } from '@chargily/chargily-pay';
+
+const CHARGILY_SECRET_KEY = process.env.CHARGILY_SECRET_KEY;
+const CHARGILY_MODE = (process.env.CHARGILY_MODE as 'test' | 'live') || 'test';
+
+if (!CHARGILY_SECRET_KEY) {
+  console.warn('CHARGILY_SECRET_KEY is not defined in environment variables');
+}
+
+export const chargilyClient = new ChargilyClient({
+  api_key: CHARGILY_SECRET_KEY || '',
+  mode: CHARGILY_MODE,
+});
+
+export interface CreateCheckoutParams {
+  amount: number;
+  success_url: string;
+  failure_url?: string;
+  metadata?: any;
+  email?: string;
+  name?: string;
+}
+
+/**
+ * Create a Chargily Pay V2 Checkout
+ */
+export async function createChargilyCheckout(params: CreateCheckoutParams) {
+  try {
+    const checkout = await chargilyClient.createCheckout({
+      amount: params.amount,
+      currency: 'dzd',
+      success_url: params.success_url,
+      failure_url: params.failure_url,
+      metadata: params.metadata,
+      // Note: In V2 SDK, nested fields like customer information can be passed
+      // but for a simple checkout, amount and urls are often enough.
+      // We can add more details if the user has a customer record in Chargily.
+    });
+
+    return {
+      success: true,
+      url: checkout.checkout_url,
+      id: checkout.id,
+    };
+  } catch (error: any) {
+    console.error('Chargily Checkout Error:', error);
+    return {
+      success: false,
+      message: error.message || 'Failed to create checkout',
+    };
+  }
+}

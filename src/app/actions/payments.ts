@@ -1,6 +1,6 @@
 'use server'
 
-import { createSlickPayInvoice } from '@/lib/payments/slickpay';
+import { createChargilyCheckout } from '@/lib/payments/chargily';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
@@ -21,18 +21,17 @@ export async function initiatePayment(planId: 'freelance' | 'agency_6m' | 'agenc
 
     const amount = prices[planId];
 
-    // Create Slick-Pay Invoice
-    const response = await createSlickPayInvoice({
+    // Create Chargily Checkout
+    const response = await createChargilyCheckout({
         amount,
-        url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/payment-success`,
-        webhook_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webhooks/slickpay`,
-        email: user.email,
-        firstname: user.user_metadata?.full_name?.split(' ')[0] || 'User',
-        lastname: user.user_metadata?.full_name?.split(' ')[1] || 'Guest',
-        webhook_meta_data: {
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/payment-success`,
+        failure_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/pricing`,
+        metadata: {
             user_id: user.id,
             plan_id: planId,
         },
+        email: user.email,
+        name: user.user_metadata?.full_name || 'User',
     });
 
     if (response.success && response.url) {
