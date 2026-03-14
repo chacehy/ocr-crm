@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
         if (event === 'checkout.paid') {
             const { user_id, plan_id } = checkout.metadata;
-            
+
             if (!user_id || !plan_id) {
                 console.error('Chargily Webhook: Missing metadata in checkout.paid', checkout.metadata);
                 return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
@@ -39,18 +39,14 @@ export async function POST(req: Request) {
 
             // Fullfil Payment based on Plan
             if (plan_id === 'freelance') {
-                // Create/Update Project Pack
-                const { error } = await supabase
-                    .from('project_packs')
-                    .insert({
-                        user_id,
-                        project_start: new Date().toISOString(),
-                        project_end: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days
-                        status: 'active'
-                    });
+                // Increment available castings credit
+                const { error } = await supabase.rpc('increment_available_castings', {
+                    p_user_id: user_id,
+                    amount: 1
+                });
 
                 if (error) {
-                    console.error('Supabase project_packs error:', error);
+                    console.error('Supabase increment credits error:', error);
                     throw error;
                 }
             } else if (plan_id.startsWith('agency_')) {

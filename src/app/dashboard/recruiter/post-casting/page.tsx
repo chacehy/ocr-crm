@@ -25,7 +25,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 
 const WILAYAS = ['Alger', 'Oran', 'Constantine', 'Annaba', 'Blida', 'Batna', 'Sétif', 'Side Bel Abbès', 'Tlemcen', 'Béjaïa']
-const PROJECT_TYPES = ['Film', 'Series', 'Commercial', 'Music Video', 'Theatre', 'Photoshoot']
+const PROJECT_TYPES = [
+  { value: 'film', label: 'Film' },
+  { value: 'serie', label: 'Série' },
+  { value: 'commercial', label: 'Commercial' },
+  { value: 'clip', label: 'Clip / Music Video' },
+  { value: 'doc', label: 'Documentary' },
+  { value: 'emission_tv', label: 'TV Show' },
+  { value: 'contenu_digital', label: 'Digital Content' },
+  { value: 'corporate', label: 'Corporate' }
+]
 export default function PostCastingPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -41,12 +50,33 @@ export default function PostCastingPage() {
     age_max: 60,
   })
 
-  const [status, setStatus] = useState<{ is_active: boolean; reason: string; role: string; subtype: string } | null>(null)
+  const [status, setStatus] = useState<{ is_active: boolean; reason: string; role: string; subtype: string; access_type?: string } | null>(null)
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
     checkStatus()
+    // Check for duplicate param
+    const dup = new URLSearchParams(window.location.search).get('duplicate')
+    if (dup) {
+      loadDuplicate(dup)
+    }
   }, [])
+
+  async function loadDuplicate(castingId: string) {
+    const { data } = await supabase.from('castings').select('*').eq('id', castingId).single()
+    if (data) {
+      setFormData({
+        title: `${data.title} (Copie)`,
+        description: data.description || '',
+        city: data.city || '',
+        project_type: data.project_type || '',
+        gender_pref: data.gender_pref || 'any',
+        age_min: data.age_min || 18,
+        age_max: data.age_max || 60,
+      })
+      toast.info('Casting dupliqué — modifiez les champs puis publiez.')
+    }
+  }
 
   async function checkStatus() {
     setChecking(true)
@@ -74,19 +104,8 @@ export default function PostCastingPage() {
         // We allow them to SEE the page but they can't submit? 
         // Or better: redirect to pricing if not active.
         setTimeout(() => router.push('/pricing'), 2000)
-      } else if (profile?.recruiter_subtype === 'freelance') {
-        // Enforce 1 active casting for Freelance
-        const { count } = await supabase
-          .from('castings')
-          .select('*', { count: 'exact', head: true })
-          .eq('recruiter_id', user.id)
-          .eq('status', 'open')
-        
-        if (count && count >= 1) {
-          toast.error("Limite atteinte: Les freelances ne peuvent avoir qu'un seul casting actif.")
-          setTimeout(() => router.push('/dashboard'), 2000)
-        }
       }
+      // Note: Credit decrementing naturally handles the single post limit now, no need for the explicit count check here.
     }
     setChecking(false)
   }
@@ -99,12 +118,32 @@ export default function PostCastingPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Unauthorized')
 
-      const { error } = await supabase.from('castings').insert({
-        recruiter_id: user.id,
-        ...formData
-      })
+      // 10 days for credits, 30 days for subscriptions
+      const days = status?.access_type === 'credit' ? 10 : 30;
+      const expiry_date = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
 
-      if (error) throw error
+      if (status?.access_type === 'credit') {
+        const { error } = await supabase.rpc('create_casting_and_consume_credit', {
+            p_recruiter_id: user.id,
+            p_title: formData.title,
+            p_description: formData.description,
+            p_city: formData.city,
+            p_project_type: formData.project_type,
+            p_gender_pref: formData.gender_pref,
+            p_age_min: formData.age_min,
+            p_age_max: formData.age_max,
+            p_expiry_date: expiry_date
+        })
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('castings').insert({
+            recruiter_id: user.id,
+            ...formData,
+            expiry_date,
+            status: 'open'
+        })
+        if (error) throw error
+      }
 
       toast.success('Casting call published successfully!')
       router.push('/dashboard')
@@ -201,7 +240,7 @@ export default function PostCastingPage() {
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-border">
-                        {PROJECT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                        {PROJECT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>

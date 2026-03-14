@@ -25,6 +25,17 @@ import { motion } from 'framer-motion'
 import { toggleShortlist, updateShortlistNotes } from '@/app/actions/shortlist'
 import { Textarea } from '@/components/ui/textarea'
 
+function getEmbedUrl(url: string): string | null {
+  if (!url) return null
+  // YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/)
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`
+  // Vimeo
+  const vimeoMatch = url.match(/(?:vimeo\.com\/)(\d+)/)
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`
+  return null
+}
+
 export default function TalentProfileDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [talent, setTalent] = useState<any>(null)
@@ -209,16 +220,29 @@ export default function TalentProfileDetailPage({ params }: { params: Promise<{ 
                  </h2>
                  {videos.length > 0 ? (
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {videos.map((video) => (
-                        <div key={video.id} className="aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 relative group">
-                           <div className="w-full h-full flex items-center justify-center">
-                              <Video className="w-12 h-12 text-slate-700" />
-                           </div>
-                           <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black to-transparent">
-                              <p className="text-sm font-bold text-white uppercase tracking-wider">{video.title || video.type}</p>
-                           </div>
-                        </div>
-                      ))}
+                      {videos.map((video) => {
+                        const embedUrl = getEmbedUrl(video.url)
+                        return (
+                          <div key={video.id} className="aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 relative group">
+                             {embedUrl ? (
+                               <iframe
+                                 src={embedUrl}
+                                 className="w-full h-full"
+                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                 allowFullScreen
+                                 title={video.title || video.type}
+                               />
+                             ) : (
+                               <a href={video.url} target="_blank" rel="noopener noreferrer" className="w-full h-full flex items-center justify-center hover:bg-slate-800 transition-colors">
+                                 <Video className="w-12 h-12 text-slate-500" />
+                               </a>
+                             )}
+                             <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black to-transparent pointer-events-none">
+                                <p className="text-sm font-bold text-white uppercase tracking-wider">{video.title || video.type}</p>
+                             </div>
+                          </div>
+                        )
+                      })}
                    </div>
                  ) : (
                    <div className="py-12 bg-slate-900/20 rounded-2xl border border-dashed border-slate-800 flex flex-col items-center justify-center text-slate-500">

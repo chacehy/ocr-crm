@@ -1,0 +1,30 @@
+ Talents
+• Portfolio de base : upload photo principale + quelques photos, 1–3 liens vidéo (démo /
+self-tape).
+• Matching simple : suggestions de castings selon ville, rôle, catégorie, langues.
+• Notifications email (et plus tard WhatsApp) :
+• nouveau casting correspondant au profil,
+• réponse à une candidature.
+• Favoris : sauvegarder des castings intéressants.
+• Interface 100% mobile-friendly (site responsive).
+ Recruteurs Freelance
+• Filtrage avancé : ville, âge joué, sexe, catégories, langues.
+• Historique projets simple : liste des castings créés + nombre de candidatures.
+• Templates de casting (dupliquer un casting existant).
+• Option “renouveler le projet” avant / après expiration.
+• Gestion multi-projets en brouillon (plusieurs préparés, un seul actif).
+ Agences / Studios
+• Shortlist : sélectionner des talents, ajouter des notes internes simples.
+• Historique castings : liste de tous les castings passés avec info de base (date, nb de
+candidatures, talents retenus).
+• Badge / certification “Agence partenaire” affiché sur le profil recruteur et sur les castings.
+ Transversal
+• Recherche intelligente (barre + filtres) : mots-clés, ville, rôle, budget, type de projet.
+• Notifications email pour événements clés : casting créé, projet expiré, nouvelle candidature,
+sélection.
+• Intégration paiement de base (ex : carte / solution locale) pour :
+• pack “Casting Express”,
+• abonnement agence.
+• Sécurité & rôles : gestion des droits selon type user + date d’expiration projet/abonnement.
+• Interface bilingue FR/AR (au moins FR + quelques labels clés en arabe dans un premier
+temps).

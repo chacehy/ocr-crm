@@ -83,6 +83,11 @@ export default async function DashboardPage() {
                     <UserCircle className="w-6 h-6 mr-2" /> Base de Talents <span className="ml-2 text-xs opacity-70 font-arabic" dir="rtl">قاعدة المواهب</span>
                   </Button>
                 </Link>
+                <Link href="/dashboard/recruiter/my-castings">
+                  <Button variant="outline" className="rounded-xl border-primary/20 bg-primary/5 text-primary h-14 px-8 font-bold text-lg hover:bg-primary/10">
+                    <ListFilter className="w-6 h-6 mr-2" /> Mes Castings <span className="ml-2 text-xs opacity-70 font-arabic" dir="rtl">إعلاناتي</span>
+                  </Button>
+                </Link>
                 <Link href="/dashboard/recruiter/post-casting">
                   <Button className="rounded-xl bg-primary text-black h-14 px-8 font-bold text-lg shadow-lg hover:opacity-90">
                     <PlusCircle className="w-6 h-6 mr-2" /> Publier un Casting <span className="ml-2 text-xs opacity-70 font-arabic" dir="rtl">نشر إعلان</span>

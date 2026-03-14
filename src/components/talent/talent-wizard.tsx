@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Loader2, Upload, X, CheckCircle2, Film, ArrowRight, Sparkles } from 'lucide-react'
+import { Loader2, Upload, X, CheckCircle2, Film, ArrowRight, Sparkles, Save } from 'lucide-react'
 
 // Constants
 const CITIES = ['Alger', 'Oran', 'Constantine', 'Annaba', 'Blida', 'Batna', 'Sétif', 'Chlef', 'Djelfa', 'Sidi Bel Abbès']
@@ -199,15 +199,184 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
   const isStep1Valid = formData.full_name && formData.city && formData.age_play_min !== '' && formData.age_play_max !== ''
   const isStep3LaunchReady = formData.main_photo || formData.main_photo_url
 
+  // ── EDIT MODE: Show all sections on one page ──
+  if (isEditing) {
+    return (
+      <div className="w-full max-w-2xl mx-auto relative z-10 space-y-8">
+        {/* Section 1: Identity */}
+        <Card className="rounded-2xl border-border/40 shadow-2xl bg-card/50 backdrop-blur-xl overflow-hidden">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Identité</CardTitle>
+            <CardDescription className="uppercase tracking-widest font-medium text-xs">Informations personnelles</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-3">
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Full Name</Label>
+              <Input placeholder="John Doe" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} className="rounded-xl h-14 bg-background border-border text-lg" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid gap-3">
+                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">City</Label>
+                <Select value={formData.city} onValueChange={v => setFormData({ ...formData, city: v })}>
+                  <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
+                  <SelectContent className="rounded-xl border-border">{CITIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-3">
+                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Gender</Label>
+                <Select value={formData.gender} onValueChange={v => setFormData({ ...formData, gender: v })}>
+                  <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg"><SelectValue placeholder="Gender" /></SelectTrigger>
+                  <SelectContent className="rounded-xl border-border">
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="any">Other / Prefer not to say</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="grid gap-3">
+                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Min Play Age</Label>
+                <Input type="number" value={formData.age_play_min} onChange={e => { const val = e.target.value === '' ? '' : parseInt(e.target.value); setFormData({ ...formData, age_play_min: val }) }} className="rounded-xl h-14 bg-background border-border text-lg" />
+              </div>
+              <div className="grid gap-3">
+                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Max Play Age</Label>
+                <Input type="number" value={formData.age_play_max} onChange={e => { const val = e.target.value === '' ? '' : parseInt(e.target.value); setFormData({ ...formData, age_play_max: val }) }} className="rounded-xl h-14 bg-background border-border text-lg" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 2: Professional */}
+        <Card className="rounded-2xl border-border/40 shadow-2xl bg-card/50 backdrop-blur-xl overflow-hidden">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Professionnel</CardTitle>
+            <CardDescription className="uppercase tracking-widest font-medium text-xs">Catégories et langues</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="space-y-4">
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">My Categories</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {CATEGORIES.map(cat => (
+                  <div key={cat} className={`flex items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.categories.includes(cat) ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground hover:border-primary/40'}`}
+                       onClick={() => {
+                         if (formData.categories.includes(cat)) setFormData({ ...formData, categories: formData.categories.filter(c => c !== cat) })
+                         else setFormData({ ...formData, categories: [...formData.categories, cat] })
+                       }}>
+                    <span className="text-sm font-bold tracking-wide">{cat}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Languages I Speak</Label>
+              <div className="flex flex-wrap gap-3">
+                {LANGUAGES.map(lang => (
+                  <div key={lang.id} className={`px-5 py-3 rounded-full border-2 transition-all cursor-pointer ${formData.languages.includes(lang.id) ? 'border-primary bg-primary text-primary-foreground font-bold shadow-lg' : 'border-border bg-background text-muted-foreground'}`}
+                       onClick={() => {
+                         if (formData.languages.includes(lang.id)) setFormData({ ...formData, languages: formData.languages.filter(l => l !== lang.id) })
+                         else setFormData({ ...formData, languages: [...formData.languages, lang.id] })
+                       }}>
+                    <span className="text-sm uppercase tracking-tighter">{lang.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-3 pt-4">
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">My Bio</Label>
+              <textarea 
+                placeholder="Briefly describe your experience, training, and what makes you unique..." 
+                value={formData.bio} 
+                onChange={e => setFormData({ ...formData, bio: e.target.value })} 
+                className="rounded-xl min-h-[120px] p-4 bg-background border border-border text-lg outline-none w-full resize-none transition-all" 
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 3: Media */}
+        <Card className="rounded-2xl border-border/40 shadow-2xl bg-card/50 backdrop-blur-xl overflow-hidden">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Média</CardTitle>
+            <CardDescription className="uppercase tracking-widest font-medium text-xs">Photos et vidéos</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="grid gap-3">
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Main Profile Photo</Label>
+              {!formData.main_photo && !formData.main_photo_url ? (
+                <Label htmlFor="main_photo_edit" className="border-3 border-dashed border-border rounded-2xl p-12 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-primary/60 hover:bg-primary/5 transition-all">
+                  <Upload className="w-12 h-12 text-primary" />
+                  <div className="text-center">
+                    <span className="text-lg font-bold block mb-1">Click to browse</span>
+                    <span className="text-sm text-muted-foreground">High-quality portrait recommended</span>
+                  </div>
+                  <Input id="main_photo_edit" type="file" className="hidden" accept="image/*" onChange={e => setFormData({ ...formData, main_photo: e.target.files?.[0] || null })} />
+                </Label>
+              ) : (
+                <div className="relative w-48 h-64 rounded-2xl overflow-hidden shadow-2xl mx-auto group ring-4 ring-primary/20">
+                  <img src={formData.main_photo ? URL.createObjectURL(formData.main_photo) : formData.main_photo_url} alt="Preview" className="w-full h-full object-cover" />
+                  <button onClick={() => setFormData({ ...formData, main_photo: null, main_photo_url: '' })} className="absolute top-3 right-3 bg-red-500 p-2 rounded-xl text-white shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-110">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="grid gap-3">
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Video Showreel Link (YouTube/Vimeo)</Label>
+              <Input placeholder="https://youtube.com/watch?v=..." value={formData.video_url} onChange={e => setFormData({ ...formData, video_url: e.target.value })} className="rounded-xl h-14 bg-background border-border text-lg" />
+            </div>
+
+            <div className="grid gap-3">
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Portfolio Gallery (Max 5)</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                {formData.gallery_photo_urls.map((url, i) => (
+                  <div key={`existing-${i}`} className="relative aspect-square rounded-xl overflow-hidden group border border-border shadow-lg">
+                    <img src={url} alt="Gallery Preview" className="w-full h-full object-cover" />
+                    <button onClick={() => setFormData({ ...formData, gallery_photo_urls: formData.gallery_photo_urls.filter((_, idx) => idx !== i) })} className="absolute top-1 right-1 bg-red-500/80 p-1.5 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-all">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                {formData.gallery.map((f, i) => (
+                  <div key={`new-${i}`} className="relative aspect-square rounded-xl overflow-hidden group border border-border shadow-lg">
+                    <img src={URL.createObjectURL(f)} alt="Gallery Preview" className="w-full h-full object-cover" />
+                    <button onClick={() => setFormData({ ...formData, gallery: formData.gallery.filter((_, idx) => idx !== i) })} className="absolute top-1 right-1 bg-red-500/80 p-1.5 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-all">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                {(formData.gallery.length + formData.gallery_photo_urls.length) < 5 && (
+                  <Label htmlFor="gallery_edit" className="aspect-square border-2 border-dashed border-border rounded-xl flex items-center justify-center cursor-pointer hover:border-primary/60 hover:bg-primary/5 transition-all">
+                    <Upload className="w-6 h-6 text-muted-foreground" />
+                    <Input id="gallery_edit" type="file" className="hidden" accept="image/*" multiple onChange={e => {
+                      const files = Array.from(e.target.files || [])
+                      setFormData({ ...formData, gallery: [...formData.gallery, ...files].slice(0, 5 - formData.gallery_photo_urls.length) })
+                    }} />
+                  </Label>
+                )}
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="p-8 border-t border-border/40 flex justify-between bg-muted/20">
+            <Button variant="ghost" onClick={() => router.push('/dashboard')} className="rounded-xl px-10 h-14 font-bold text-lg hover:text-primary transition-colors">Annuler</Button>
+            <Button onClick={handleSubmit} disabled={loading || !isStep1Valid} className="rounded-xl px-12 bg-primary text-primary-foreground h-14 text-lg font-bold shadow-[0_4px_25px_rgba(251,191,36,0.4)] hover:opacity-90 transition-all">
+              {loading ? <><Loader2 className="w-6 h-6 mr-2 animate-spin" /> Enregistrement...</> : <><Save className="w-6 h-6 mr-2" /> Mettre à jour</>}
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    )
+  }
+
+  // ── NEW PROFILE: Standard wizard steps ──
   return (
     <div className="w-full max-w-2xl mx-auto relative z-10">
         <div className="flex justify-center mb-10">
-           {!isEditing && (
-             <div className="text-3xl font-bold tracking-tighter text-primary flex items-center gap-2">
-               <Film className="w-7 h-7" />
-               <span>CastingConnect<span className="text-foreground">DZ</span></span>
-             </div>
-           )}
+           <div className="text-3xl font-bold tracking-tighter text-primary flex items-center gap-2">
+             <Film className="w-7 h-7" />
+             <span>CastingConnect<span className="text-foreground">DZ</span></span>
+           </div>
         </div>
 
         <div className="mb-12 flex justify-between items-center px-4">
@@ -229,7 +398,7 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} key="step1">
               <Card className="rounded-2xl border-border/40 shadow-2xl bg-card/50 backdrop-blur-xl overflow-hidden">
                 <CardHeader className="text-center">
-                  <CardTitle className="text-3xl font-bold">{isEditing ? 'Modifier l\'Identité' : 'Identity'}</CardTitle>
+                  <CardTitle className="text-3xl font-bold">Identity</CardTitle>
                   <CardDescription className="text-base text-muted-foreground uppercase tracking-widest font-medium">Step 1 of 3</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 pt-4">
@@ -382,7 +551,6 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
                   <div className="grid gap-3 pt-4">
                     <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Portfolio Gallery (Max 5)</Label>
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                      {/* Existing Photos */}
                       {formData.gallery_photo_urls.map((url, i) => (
                         <div key={`existing-${i}`} className="relative aspect-square rounded-xl overflow-hidden group border border-border shadow-lg">
                           <img src={url} alt="Gallery Preview" className="w-full h-full object-cover" />
@@ -391,7 +559,6 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
                           </button>
                         </div>
                       ))}
-                      {/* New Photos */}
                       {formData.gallery.map((f, i) => (
                         <div key={`new-${i}`} className="relative aspect-square rounded-xl overflow-hidden group border border-border shadow-lg">
                           <img src={URL.createObjectURL(f)} alt="Gallery Preview" className="w-full h-full object-cover" />
@@ -415,7 +582,7 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
                 <CardFooter className="p-8 border-t border-border/40 flex justify-between bg-muted/20">
                   <Button variant="ghost" onClick={prevStep} className="rounded-xl px-10 h-14 font-bold text-lg hover:text-primary transition-colors">Back</Button>
                   <Button onClick={handleSubmit} disabled={loading || !isStep3LaunchReady} className="rounded-xl px-12 bg-primary text-primary-foreground h-14 text-lg font-bold shadow-[0_4px_25px_rgba(251,191,36,0.4)] hover:opacity-90 transition-all">
-                    {loading ? <><Loader2 className="w-6 h-6 mr-2 animate-spin" /> Publishing...</> : isEditing ? 'Mettre à jour' : 'Launch My Profile'}
+                    {loading ? <><Loader2 className="w-6 h-6 mr-2 animate-spin" /> Publishing...</> : 'Launch My Profile'}
                   </Button>
                 </CardFooter>
               </Card>

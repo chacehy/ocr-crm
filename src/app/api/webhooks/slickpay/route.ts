@@ -32,15 +32,11 @@ export async function POST(req: Request) {
 
         // 2. Fullfil Payment based on Plan
         if (plan_id === 'freelance') {
-            // Create/Update Project Pack
-            const { error } = await supabase
-                .from('project_packs')
-                .insert({
-                    user_id,
-                    project_start: new Date().toISOString(),
-                    project_end: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days
-                    status: 'active'
-                });
+            // Increment available castings credit
+            const { error } = await supabase.rpc('increment_available_castings', {
+                p_user_id: user_id,
+                amount: 1
+            });
 
             if (error) throw error;
         } else if (plan_id.startsWith('agency_')) {

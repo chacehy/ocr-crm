@@ -1,0 +1,246 @@
+# MVP - Plateforme CastingConnect
+## Spécifications Techniques pour le Développeur
+---
+## 1. Logique globale du système
+**Utilisateurs :**
+- **Talents** (gratuit)
+- **Recruteurs**
+ - Freelance (pay per project)
+ - Agence / Studio (abonnement 6 ou 12 mois)
+---
+## 2. Talents
+**Accès :**
+- Création de profil gratuite
+- Upload photos / démo (liens vidéo)
+- Postuler aux castings
+- Voir statut de candidature (envoyé / pré-sélectionné / refusé / retenu)
+**Restrictions :**
+- Aucun paiement requis
+- Pas de limite de candidature
+---
+## 3. Recruteur - Freelance (Pay per project)
+**Produit :** "Casting Express" = 1 projet
+**Pack inclut :**
+- Publication de 1 casting
+- Casting actif X jours (ex : 7 ou 10 jours)
+- Réception illimitée de candidatures
+- Accès aux profils correspondants
+- Contact direct illimité
+- **1 seul casting actif à la fois**
+**Logique technique :**
+```
+USER
+├── role = recruiter
+├── recruiter_type = freelance
+├── active_project = true/false
+```
+**Middleware :**
+```
+IF recruiter_type == freelance
+ IF active_project == true
+ → autorisé
+ ELSE
+ → redirection vers paiement
+```
+**À expiration :**
+- `active_project = false`
+- Le casting passe en `status = 'expired'` et n'est plus visible côté talents
+---
+Explore our developer-friendly HTML to PDF API Printed using PDFCrowd HTML to PDF
+## 4. Recruteur - Agence / Studio
+**Produit :** Accès temps (licence)
+**6 MOIS :**
+- Castings illimités
+- Accès base complète
+- Matching avancé
+- Contact illimité
+- Historique
+**12 MOIS ⭐ :**
+- Tout le 6 mois
+- Mise en avant des castings
+- Priorité dans résultats
+- Badge partenaire
+**Logique technique :**
+```
+USER
+├── recruiter_type = agency
+├── subscription_type = 6m / 12m
+├── subscription_start
+├── subscription_end
+```
+**Middleware :**
+```
+IF recruiter_type == agency
+ IF now < subscription_end
+ → autorisé
+ ELSE
+ → accès bloqué
+```
+**À expiration :**
+- Quand `now > subscription_end`, le recruteur agence perd l'accès à la création de
+nouveaux castings et à la base talents, mais son compte reste conservé.
+---
+## 5. Structure simplifiée de la base de données
+### USERS
+- `id` (PK)
+- `role` (talent / recruiter)
+- `recruiter_type` (freelance / agency / null si talent)
+- `email`
+- `password_hash`
+- `created_at`
+- `updated_at`
+### TALENT_PROFILE
+- `id` (PK)
+- `user_id` (FK → USERS.id)
+- `full_name`
+- `city`
+- `mobility_zones` (array : Alger, Oran, Constantine, Maroc, Tunisie...)
+- `age_real`
+- `age_play_range_min`
+- `age_play_range_max`
+- `languages` (array : AR, DZ, KAB, FR, EN)
+- `categories` (array : acteur, figurant, voix off, modèle, danse, influenceur...)
+- `day_rate_dzd` (nullable)
+- `availability`
+Explore our developer-friendly HTML to PDF API Printed using PDFCrowd HTML to PDF
+- `bio`
+- `main_photo_url`
+- `gallery_photo_urls` (array)
+- `is_pro_badge` (bool)
+- `is_verified` (bool)
+- `created_at`
+- `updated_at`
+### TALENT_VIDEO
+- `id` (PK)
+- `talent_profile_id` (FK → TALENT_PROFILE.id)
+- `type` (SHOWREEL / SELF_TAPE / PUB / AUTRE)
+- `source` (YOUTUBE_URL)
+- `url`
+- `title` (optionnel)
+- `position` (ordre d'affichage)
+### SUBSCRIPTIONS
+- `id` (PK)
+- `user_id` (FK → USERS.id)
+- `plan` (6m / 12m)
+- `start_date`
+- `end_date`
+- `status` (active / expired)
+- `created_at`
+### PROJECT_PACKS
+- `id` (PK)
+- `user_id` (FK → USERS.id)
+- `project_start`
+- `project_end`
+- `status` (active / expired)
+- `created_at`
+### CASTINGS
+- `id` (PK)
+- `recruiter_id` (FK → USERS.id)
+- `title`
+- `description`
+- `city`
+- `project_type` (FILM / COMMERCIAL / SERIE / CLIP / DOC / EMISSION_TV / CONTENU_DIGITAL
+/ CORPORATE)
+- `gender_pref` (H / F / ANY)
+- `age_play_min`
+- `age_play_max`
+- `languages_required` (array)
+- `look_tags` (array : voilée, corporate, street, traditionnel...)
+- `skills_required` (array : comédie, voix off, sport, danse...)
+- `remuneration_type` (PAYE / DEFRAIEMENT / BENEVOLAT)
+- `day_rate_dzd` (nullable)
+- `budget`
+- `status` (open / closed / expired)
+- `expiry_date`
+- `created_at`
+- `updated_at`
+**Note MVP :** Pour le MVP, un "casting" = un rôle. La notion de "Projet" avec plusieurs
+rôles pourra être ajoutée plus tard.
+### APPLICATIONS
+- `id` (PK)
+- `casting_id` (FK → CASTINGS.id)
+- `talent_id` (FK → TALENT_PROFILE.id)
+- `message` (optionnel)
+- `status` (SUBMITTED / PRESELECTED / REJECTED / BOOKED)
+- `created_at`
+- `updated_at`
+Explore our developer-friendly HTML to PDF API Printed using PDFCrowd HTML to PDF
+---
+## 6. Règles métier importantes
+**Freelance :**
+- 1 casting actif max
+- Durée limitée (7-10 jours)
+- Pas d'accès hors projet actif
+- À expiration du PROJECT_PACK, le casting passe en `status = 'expired'` et n'est plus
+visible
+**Agence :**
+- Castings illimités
+- Accès permanent pendant validité de l'abonnement
+- À expiration de la SUBSCRIPTION, perte d'accès mais conservation du compte
+---
+## 7. Logique paiement
+**Freelance :**
+- Achat = création d'un enregistrement `PROJECT_PACK` actif
+- Déclencheur : paiement validé → `active_project = true`
+**Agence :**
+- Achat = création d'un enregistrement `SUBSCRIPTION`
+- Déclencheur : paiement validé → `subscription_start` et `subscription_end` définis
+---
+## 8. Affichage pricing (Front)
+| Produit | Type Paiement | Description |
+|---------|---------------|-------------|
+| **Casting Express** | Pay per project | 1 projet actif limité (7-10 jours) |
+| **Agence 6 mois** | Accès continu | Castings illimités, base complète |
+| **Studio 12 mois** ⭐ | Meilleur rapport valeur | Priorité & badge partenaire |
+**Talents :** "Inscription gratuite"
+---
+## 9. Comportement à l'expiration
+**Freelance (PROJECT_PACK expire) :**
+1. `active_project = false`
+2. Tous les castings de ce recruteur passent en `status = 'expired'`
+3. Les castings ne sont plus visibles côté talents
+4. Le recruteur doit acheter un nouveau pack pour publier
+**Agence (SUBSCRIPTION expire) :**
+1. `now > subscription_end`
+2. Le recruteur perd l'accès à :
+ - Création de nouveaux castings
+ - Base de talents
+ - Dashboard complet
+3. Le compte reste conservé (possibilité de renouveler)
+4. Les castings précédents restent en historique mais en lecture seule
+---
+## 10. Priorité Dev (MVP)
+1. **Auth + rôles** (talent / recruiter avec recruiter_type)
+2. **Création profil talent** (wizard 3 étapes)
+3. **Création casting** (formulaire recruteur)
+Explore our developer-friendly HTML to PDF API Printed using PDFCrowd HTML to PDF
+4. **Paiement freelance** (intégration paiement → création PROJECT_PACK)
+5. **Gestion expiration projet** (cron job ou middleware)
+6. **Paiement abonnement agence** (intégration paiement → création SUBSCRIPTION)
+7. **Middleware de restriction** (vérification active_project / subscription_end)
+8. **Dashboard recruteur** (stats, liste castings, candidatures)
+---
+## 11. Résumé pour le dev
+- **Talents :** gratuits, profil complet, candidatures illimitées
+- **Freelance :** 1 pack = 1 projet actif limité dans le temps (7-10 jours)
+- **Agence :** abonnement 6m ou 12m, accès illimité pendant la durée
+- **L'accès dépend d'un projet actif ou d'un abonnement valide**
+- **Toute la logique repose sur des dates d'expiration**
+- **Un casting = un rôle pour le MVP** (notion de projet multi-rôles reportée V2)
+---
+## 12. Relations clés entre tables
+```
+USERS (role = recruiter)
+ └──> PROJECT_PACKS (pour freelance)
+ └──> SUBSCRIPTIONS (pour agence)
+ └──> CASTINGS
+USERS (role = talent)
+ └──> TALENT_PROFILE
+ └──> TALENT_VIDEO
+CASTINGS
+ └──> APPLICATIONS
+ └──> TALENT_PROFILE
+```
+---
+**Document version 2.0** - Février 2026
+**Plateforme :** CastingConnect DZ
