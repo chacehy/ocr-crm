@@ -28,7 +28,8 @@ export async function POST(req: Request) {
         }
 
         const { user_id, plan_id } = webhook_meta_data;
-        const supabase = await createClient();
+        const { createAdminClient } = await import('@/lib/supabase/admin');
+        const supabase = createAdminClient();
 
         // 2. Fullfil Payment based on Plan
         if (plan_id === 'freelance') {

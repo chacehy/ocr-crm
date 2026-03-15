@@ -16,6 +16,7 @@ import {
   AlertTriangle 
 } from 'lucide-react'
 import Link from 'next/link'
+import { WILAYAS, PROJECT_TYPES } from '@/lib/constants'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,17 +25,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
-const WILAYAS = ['Alger', 'Oran', 'Constantine', 'Annaba', 'Blida', 'Batna', 'Sétif', 'Side Bel Abbès', 'Tlemcen', 'Béjaïa']
-const PROJECT_TYPES = [
-  { value: 'film', label: 'Film' },
-  { value: 'serie', label: 'Série' },
-  { value: 'commercial', label: 'Commercial' },
-  { value: 'clip', label: 'Clip / Music Video' },
-  { value: 'doc', label: 'Documentary' },
-  { value: 'emission_tv', label: 'TV Show' },
-  { value: 'contenu_digital', label: 'Digital Content' },
-  { value: 'corporate', label: 'Corporate' }
-]
+
 export default function PostCastingPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -145,7 +136,7 @@ export default function PostCastingPage() {
         if (error) throw error
       }
 
-      toast.success('Casting call published successfully!')
+      toast.success('Annonce de casting publiée avec succès !')
       router.push('/dashboard')
     } catch (error: any) {
       toast.error(error.message)
@@ -183,7 +174,7 @@ export default function PostCastingPage() {
         <div className="mb-10 flex items-center justify-between">
             <Link href="/dashboard">
                 <Button variant="ghost" className="text-muted-foreground hover:text-primary p-0">
-                    <ArrowLeft className="w-5 h-5 mr-2" /> Back to Dashboard
+                    <ArrowLeft className="w-5 h-5 mr-2" /> Retour au Dashboard
                 </Button>
             </Link>
             <div className="text-2xl font-bold tracking-tighter text-primary flex items-center gap-2">
@@ -197,19 +188,19 @@ export default function PostCastingPage() {
             <CardHeader className="p-10 pb-4">
                <div className="flex items-center gap-3 text-primary mb-2">
                  <PlusCircle className="w-6 h-6" />
-                 <span className="text-xs font-black uppercase tracking-[0.2em]">Recruiter Studio</span>
+                 <span className="text-xs font-black uppercase tracking-[0.2em]">Studio Recruteur</span>
                </div>
-               <CardTitle className="text-4xl font-bold">Post a New <span className="text-primary italic">Casting</span></CardTitle>
-               <CardDescription className="text-lg">Publish a call for talents and start receiving applications.</CardDescription>
+               <CardTitle className="text-4xl font-bold">Publier un <span className="text-primary italic">Casting</span></CardTitle>
+               <CardDescription className="text-lg">Créez une annonce pour trouver les meilleurs talents pour votre projet.</CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
               <CardContent className="p-10 space-y-8">
                 <div className="grid gap-3">
                   <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Film className="w-4 h-4" /> Casting Title
+                    <Film className="w-4 h-4" /> Titre du Casting
                   </Label>
                   <Input 
-                    placeholder="e.g. Lead Actor for Feature Film 'The Sahara Dream'" 
+                    placeholder="ex: Acteur Principal pour Long-Métrage 'Le Rêve du Sahara'" 
                     required 
                     value={formData.title}
                     onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -220,24 +211,24 @@ export default function PostCastingPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="grid gap-3">
                     <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <MapPin className="w-4 h-4" /> Shooting Location
+                      <MapPin className="w-4 h-4" /> Lieu du Tournage
                     </Label>
                     <Select value={formData.city} onValueChange={v => setFormData({ ...formData, city: v })}>
                       <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg">
-                        <SelectValue placeholder="Select city" />
+                        <SelectValue placeholder="Sélectionnez une ville" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl border-border">
-                        {WILAYAS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
-                      </SelectContent>
+                      <SelectContent className="rounded-xl max-h-80">
+                      {WILAYAS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
+                    </SelectContent>
                     </Select>
                   </div>
                   <div className="grid gap-3">
                     <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <PlusCircle className="w-4 h-4" /> Project Type
+                      <PlusCircle className="w-4 h-4" /> Type de Projet
                     </Label>
                     <Select value={formData.project_type} onValueChange={v => setFormData({ ...formData, project_type: v })}>
                       <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg">
-                        <SelectValue placeholder="Select type" />
+                        <SelectValue placeholder="Sélectionnez un type" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-border">
                         {PROJECT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
@@ -249,33 +240,33 @@ export default function PostCastingPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                    <div className="grid gap-3">
                     <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <Users className="w-4 h-4" /> Role Gender
+                      <Users className="w-4 h-4" /> Sexe du Rôle
                     </Label>
                     <Select value={formData.gender_pref} onValueChange={v => setFormData({ ...formData, gender_pref: v })}>
                       <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg">
-                        <SelectValue placeholder="Any" />
+                        <SelectValue placeholder="Peu importe" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-border">
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="any">Any</SelectItem>
+                        <SelectItem value="male">Homme</SelectItem>
+                        <SelectItem value="female">Femme</SelectItem>
+                        <SelectItem value="any">Peu importe</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="grid gap-3">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Min Age</Label>
+                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Âge Min</Label>
                     <Input type="number" value={formData.age_min} onChange={e => setFormData({ ...formData, age_min: parseInt(e.target.value) })} className="rounded-xl h-14 bg-background border-border text-lg" />
                   </div>
                   <div className="grid gap-3">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Max Age</Label>
+                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Âge Max</Label>
                     <Input type="number" value={formData.age_max} onChange={e => setFormData({ ...formData, age_max: parseInt(e.target.value) })} className="rounded-xl h-14 bg-background border-border text-lg" />
                   </div>
                 </div>
 
                 <div className="grid gap-3">
-                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Project Description & Requirements</Label>
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Description du Projet & Exigences</Label>
                   <Textarea 
-                    placeholder="Describe the role, the story, and what you are looking for in the artist..." 
+                    placeholder="Décrivez le rôle, l'histoire et ce que vous recherchez chez l'artiste..." 
                     required 
                     className="rounded-2xl min-h-[150px] p-6 bg-background border-border text-lg focus:ring-primary/20 outline-none w-full resize-none transition-all"
                     value={formData.description}
@@ -285,7 +276,7 @@ export default function PostCastingPage() {
 
                 <div className="grid gap-3">
                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                     <Calendar className="w-4 h-4" /> Listing Visible For
+                     <Calendar className="w-4 h-4" /> Annonce Visible Pendant
                    </Label>
                    <div className="h-14 px-4 flex items-center bg-muted/20 border border-border rounded-xl text-muted-foreground italic">
                      {status?.subtype === 'freelance' ? '7-10 jours (Inclus dans le pack)' : '30 jours (Standard Agency)'}
@@ -294,7 +285,7 @@ export default function PostCastingPage() {
               </CardContent>
               <CardFooter className="p-10 border-t border-border/40 bg-muted/20 flex justify-end">
                 <Button type="submit" className="rounded-2xl bg-amber-500 text-black h-16 px-12 font-bold text-xl shadow-[0_4px_30px_rgba(251,191,36,0.3)] hover:opacity-90 transition-all" disabled={loading}>
-                  {loading ? 'Publishing...' : 'Launch Casting Call'}
+                  {loading ? 'Publication...' : 'Lancer le Casting'}
                 </Button>
               </CardFooter>
             </form>

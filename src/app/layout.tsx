@@ -20,7 +20,7 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: "CastingConnect DZ",
-  description: "The leading casting platform in Algeria",
+  description: "La plateforme de casting leader en Algérie",
 };
 
 export default function RootLayout({
@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased`}
       >

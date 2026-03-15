@@ -28,3 +28,25 @@ sélection.
 • Sécurité & rôles : gestion des droits selon type user + date d’expiration projet/abonnement.
 • Interface bilingue FR/AR (au moins FR + quelques labels clés en arabe dans un premier
 temps).
+
+
+
+
+
+V2 (quand tu as du trafic and not necessary for now) 
+Talents
+• Portfolio plus riche : CV vidéo, plusieurs sections (jeu, pub, voix off…).
+• Évaluations & recommandations : feedback des recruteurs (visible ou interne).
+• Statistiques personnelles : nombre de candidatures, taux de réponse, nombre de fois
+shortlisté.
+Freelance
+• Statistiques projets : nb de candidatures / projet, taux de sélection, temps pour trouver le
+talent.
+• Messagerie intégrée simple (messages type inbox, pas forcément temps réel) + bouton
+“Continuer sur WhatsApp”.
+Agences / Studios
+• Dashboard analytics : vues de casting, candidatures par canal (recherche, partage lien, etc.).
+• Priorisation automatique simple : tri par score (match ville + rôle + langues).
+Transversal
+• Notifications push (si PWA ou app mobile).
+• Logs simples : qui a créé/édité un casting, qui a changé le statut d’une candidature.

@@ -2,19 +2,20 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Check, Sparkles, Film, Building2, Zap } from 'lucide-react'
+import { Check, Sparkles, Film, Building2, Zap, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { initiatePayment } from '@/app/actions/payments'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 const plans = [
   {
     id: 'freelance',
     name: 'Casting Express',
-    description: 'Perfect for one-off projects.',
-    price: '2,500',
-    unit: 'per projet',
+    description: 'Parfait pour les projets ponctuels.',
+    price: '2 500',
+    unit: 'par projet',
     icon: Zap,
     features: [
       '1 Casting actif',
@@ -29,8 +30,8 @@ const plans = [
   {
     id: 'agency_6m',
     name: 'Agence Pro',
-    description: 'Full database access for 6 months.',
-    price: '15,000',
+    description: 'Accès complet à la base de données pendant 6 mois.',
+    price: '15 000',
     unit: '6 mois',
     icon: Film,
     features: [
@@ -46,8 +47,8 @@ const plans = [
   {
     id: 'agency_12m',
     name: 'Studio Elite',
-    description: 'The best value for power recruiters.',
-    price: '25,000',
+    description: 'La meilleure valeur pour les recruteurs intensifs.',
+    price: '25 000',
     unit: '12 mois',
     icon: Building2,
     features: [
@@ -82,6 +83,12 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-black text-white py-20 px-4">
       <div className="max-w-7xl mx-auto">
+        <Button asChild variant="ghost" className="text-slate-400 hover:text-white mb-8 group">
+          <Link href="/dashboard">
+            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" /> Retour au Dashboard
+          </Link>
+        </Button>
+
         <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

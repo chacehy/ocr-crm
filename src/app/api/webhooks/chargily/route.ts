@@ -35,7 +35,10 @@ export async function POST(req: Request) {
                 return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
             }
 
-            const supabase = await createClient();
+            const { createAdminClient } = await import('@/lib/supabase/admin');
+            const supabase = createAdminClient();
+
+            console.log('Chargily fulfillment started for user:', user_id, 'plan:', plan_id);
 
             // Fullfil Payment based on Plan
             if (plan_id === 'freelance') {

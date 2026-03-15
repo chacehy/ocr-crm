@@ -16,10 +16,10 @@ export default function LandingPage() {
         </div>
         <div className="flex gap-4">
           <Link href="/login">
-            <Button variant="ghost" className="font-medium hover:text-primary transition-colors">Login</Button>
+            <Button variant="ghost" className="font-medium hover:text-primary transition-colors">Connexion</Button>
           </Link>
           <Link href="/signup">
-            <Button className="bg-primary text-primary-foreground hover:opacity-90 rounded-lg h-10 px-6 transition-all shadow-[0_0_15px_rgba(251,191,36,0.2)]">Join Now</Button>
+            <Button className="bg-primary text-primary-foreground hover:opacity-90 rounded-lg h-10 px-6 transition-all shadow-[0_0_15px_rgba(251,191,36,0.2)]">Rejoindre</Button>
           </Link>
         </div>
       </nav>
@@ -36,7 +36,7 @@ export default function LandingPage() {
             className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 text-sm font-medium text-primary mb-8"
           >
             <Sparkles className="w-4 h-4 fill-primary" />
-            <span>The Premier Entertainment Network in Algeria</span>
+            <span>Le Premier Réseau de l'Entertainment en Algérie</span>
           </motion.div>
           
           <motion.h1 
@@ -45,7 +45,7 @@ export default function LandingPage() {
             transition={{ delay: 0.1 }}
             className="text-5xl sm:text-8xl font-bold tracking-tight mb-8 leading-[1.1]"
           >
-            Step into the <br /> <span className="text-primary italic">Spotlight</span>
+            Entrez dans la <br /> <span className="text-primary italic">Lumière</span>
           </motion.h1>
           
           <motion.p 
@@ -54,7 +54,7 @@ export default function LandingPage() {
             transition={{ delay: 0.2 }}
             className="text-xl text-muted-foreground mb-12 max-w-2xl leading-relaxed"
           >
-            Algeria's most premium platform connecting actors, models, and dancers with top production houses. Your journey to the screen starts here.
+            La plateforme premium connectant acteurs, mannequins et danseurs avec les meilleures maisons de production. Votre voyage vers l'écran commence ici.
           </motion.p>
           
           <motion.div 
@@ -65,12 +65,14 @@ export default function LandingPage() {
           >
             <Link href="/signup">
               <Button size="lg" className="bg-primary text-primary-foreground hover:opacity-90 rounded-xl h-16 px-10 text-xl font-bold w-full sm:w-72 shadow-[0_0_30px_rgba(251,191,36,0.3)] group transition-all">
-                Create My Profile <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                Créer mon Profil <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="rounded-xl h-16 px-10 text-xl font-medium w-full sm:w-64 border-border hover:bg-muted transition-colors">
-              Find Talents
-            </Button>
+            <Link href="/talents">
+              <Button variant="outline" size="lg" className="rounded-xl h-16 px-10 text-xl font-medium w-full sm:w-64 border-border hover:bg-muted transition-colors">
+                Trouver des Talents
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>
@@ -88,7 +90,7 @@ export default function LandingPage() {
           </div>
           <div>
             <div className="text-4xl font-bold text-primary mb-1">1k+</div>
-            <div className="text-sm text-muted-foreground uppercase tracking-widest font-medium">Successes</div>
+            <div className="text-sm text-muted-foreground uppercase tracking-widest font-medium">Succès</div>
           </div>
           <div>
             <div className="text-4xl font-bold text-primary mb-1">24/7</div>
@@ -104,22 +106,22 @@ export default function LandingPage() {
             <div className="w-14 h-14 bg-primary rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(251,191,36,0.2)] group-hover:scale-110 transition-transform">
               <Users className="text-primary-foreground w-7 h-7" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground">Premium Talent Pool</h3>
-            <p className="text-muted-foreground leading-relaxed">Access a highly curated database of Algeria's finest creative professionals across all categories.</p>
+            <h3 className="text-2xl font-bold text-foreground">Vivier de Talents Premium</h3>
+            <p className="text-muted-foreground leading-relaxed">Accédez à une base de données rigoureusement sélectionnée des meilleurs professionnels créatifs d'Algérie.</p>
           </div>
           <div className="group space-y-6 p-8 rounded-2xl bg-card border border-border/40 hover:border-primary/40 transition-all">
             <div className="w-14 h-14 bg-foreground rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
               <Video className="text-background w-7 h-7" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground">Digital Showreels</h3>
-            <p className="text-muted-foreground leading-relaxed">Display your range with integrated high-quality video links and professional photo galleries.</p>
+            <h3 className="text-2xl font-bold text-foreground">Showreels Digitaux</h3>
+            <p className="text-muted-foreground leading-relaxed">Montrez l'étendue de votre talent avec des liens vidéo intégrés et des galeries photos professionnelles.</p>
           </div>
           <div className="group space-y-6 p-8 rounded-2xl bg-card border border-border/40 hover:border-primary/40 transition-all">
             <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 group-hover:scale-110 transition-transform">
               <Camera className="text-primary w-7 h-7" />
             </div>
-            <h3 className="text-2xl font-bold text-foreground">Smart Casting</h3>
-            <p className="text-muted-foreground leading-relaxed">Filter by location, age, and skill with our advanced matching engine tailored for the Algerian market.</p>
+            <h3 className="text-2xl font-bold text-foreground">Casting Intelligent</h3>
+            <p className="text-muted-foreground leading-relaxed">Filtrez par ville, âge et compétences avec notre moteur de recherche adapté au marché algérien.</p>
           </div>
         </div>
       </section>
@@ -129,9 +131,9 @@ export default function LandingPage() {
           <Film className="w-6 h-6" />
           <span>CastingConnect<span className="text-foreground">DZ</span></span>
         </div>
-        <p className="text-muted-foreground text-sm max-w-xs mx-auto mb-8">Elevating the standards of Algerian casting and production management.</p>
+        <p className="text-muted-foreground text-sm max-w-xs mx-auto mb-8">Élever les standards du casting et de la gestion de production en Algérie.</p>
         <div className="text-slate-600 text-xs tracking-widest uppercase">
-          &copy; 2026 CastingConnect DZ. All rights reserved.
+          &copy; 2026 CastingConnect DZ. Tous droits réservés.
         </div>
       </footer>
     </div>

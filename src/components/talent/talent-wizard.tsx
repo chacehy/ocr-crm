@@ -11,17 +11,10 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Loader2, Upload, X, CheckCircle2, Film, ArrowRight, Sparkles, Save } from 'lucide-react'
+import { WILAYAS, CATEGORIES, LANGUAGES } from '@/lib/constants'
 
-// Constants
-const CITIES = ['Alger', 'Oran', 'Constantine', 'Annaba', 'Blida', 'Batna', 'Sétif', 'Chlef', 'Djelfa', 'Sidi Bel Abbès']
-const CATEGORIES = ['Actor', 'Model', 'Dancer', 'Voice Over', 'Extra', 'Influencer', 'Singer']
-const LANGUAGES = [
-  { id: 'AR', label: 'Arabic' },
-  { id: 'DZ', label: 'Derja' },
-  { id: 'KAB', label: 'Kabyle' },
-  { id: 'FR', label: 'French' },
-  { id: 'EN', label: 'English' },
-]
+
+
 
 interface TalentWizardProps {
     isEditing?: boolean;
@@ -72,7 +65,7 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
       if (profile) {
         setExistingProfile(profile)
         if (!isEditing && step === 1) {
-          toast.info('You already have a talent profile!')
+          toast.info('Vous avez déjà un profil talent !')
           router.push('/dashboard')
           return
         }
@@ -158,26 +151,39 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
         updated_at: new Date().toISOString(),
       }
 
-      // 3. Create or Update Talent Profile
-      const { data: profile, error: profileError } = await supabase
-        .from('talent_profiles')
-        .upsert(profilePayload, { onConflict: 'user_id' })
-        .select('id')
-        .single()
+      let talent_id: string;
 
-      if (profileError) throw profileError
+      // 3. Create or Update Talent Profile
+      if (existingProfile) {
+        const { error: updateError } = await supabase
+          .from('talent_profiles')
+          .update(profilePayload)
+          .eq('id', existingProfile.id)
+        if (updateError) throw updateError
+        talent_id = existingProfile.id;
+      } else {
+        const { data: newProfile, error: insertError } = await supabase
+          .from('talent_profiles')
+          .insert(profilePayload)
+          .select()
+          .single()
+        if (insertError) throw insertError
+        
+        // Use the new ID for video
+        talent_id = newProfile.id
+      }
 
       // 4. Update Profile Video
       if (formData.video_url) {
         await supabase.from('talent_videos').upsert({
-          talent_profile_id: profile.id,
+          talent_profile_id: talent_id,
           type: 'showreel',
           url: formData.video_url,
-          title: 'My Video Demo',
+          title: 'Ma Vidéo Démo',
         }, { onConflict: 'talent_profile_id,type' })
       }
 
-      toast.success(isEditing ? 'Profile mis à jour !' : 'Your profile is now live in the spotlight!')
+      toast.success(isEditing ? 'Profil mis à jour !' : 'Votre profil est maintenant en ligne !')
       router.push('/dashboard')
       router.refresh()
     } catch (error: any) {
@@ -211,36 +217,38 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-3">
-              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Full Name</Label>
-              <Input placeholder="John Doe" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} className="rounded-xl h-14 bg-background border-border text-lg" />
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Nom Complet</Label>
+              <Input placeholder="Jean Dupont" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} className="rounded-xl h-14 bg-background border-border text-lg" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="grid gap-3">
-                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">City</Label>
+                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Ville</Label>
                 <Select value={formData.city} onValueChange={v => setFormData({ ...formData, city: v })}>
-                  <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
-                  <SelectContent className="rounded-xl border-border">{CITIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg"><SelectValue placeholder="Sélectionnez une ville" /></SelectTrigger>
+                  <SelectContent className="max-h-80">
+                    {WILAYAS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
+                  </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-3">
-                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Gender</Label>
+                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Sexe</Label>
                 <Select value={formData.gender} onValueChange={v => setFormData({ ...formData, gender: v })}>
-                  <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg"><SelectValue placeholder="Gender" /></SelectTrigger>
+                  <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg"><SelectValue placeholder="Sexe" /></SelectTrigger>
                   <SelectContent className="rounded-xl border-border">
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="any">Other / Prefer not to say</SelectItem>
+                    <SelectItem value="male">Homme</SelectItem>
+                    <SelectItem value="female">Femme</SelectItem>
+                    <SelectItem value="any">Autre / Non spécifié</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="grid gap-3">
-                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Min Play Age</Label>
+                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Âge Apparent Min</Label>
                 <Input type="number" value={formData.age_play_min} onChange={e => { const val = e.target.value === '' ? '' : parseInt(e.target.value); setFormData({ ...formData, age_play_min: val }) }} className="rounded-xl h-14 bg-background border-border text-lg" />
               </div>
               <div className="grid gap-3">
-                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Max Play Age</Label>
+                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Âge Apparent Max</Label>
                 <Input type="number" value={formData.age_play_max} onChange={e => { const val = e.target.value === '' ? '' : parseInt(e.target.value); setFormData({ ...formData, age_play_max: val }) }} className="rounded-xl h-14 bg-background border-border text-lg" />
               </div>
             </div>
@@ -255,7 +263,7 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
           </CardHeader>
           <CardContent className="space-y-8">
             <div className="space-y-4">
-              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">My Categories</Label>
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Mes Catégories</Label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {CATEGORIES.map(cat => (
                   <div key={cat} className={`flex items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.categories.includes(cat) ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground hover:border-primary/40'}`}
@@ -269,7 +277,7 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
               </div>
             </div>
             <div className="space-y-4">
-              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Languages I Speak</Label>
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Langues parlées</Label>
               <div className="flex flex-wrap gap-3">
                 {LANGUAGES.map(lang => (
                   <div key={lang.id} className={`px-5 py-3 rounded-full border-2 transition-all cursor-pointer ${formData.languages.includes(lang.id) ? 'border-primary bg-primary text-primary-foreground font-bold shadow-lg' : 'border-border bg-background text-muted-foreground'}`}
@@ -283,9 +291,9 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
               </div>
             </div>
             <div className="grid gap-3 pt-4">
-              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">My Bio</Label>
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Ma Biographie</Label>
               <textarea 
-                placeholder="Briefly describe your experience, training, and what makes you unique..." 
+                placeholder="Décrivez brièvement votre expérience, votre formation et ce qui vous rend unique..." 
                 value={formData.bio} 
                 onChange={e => setFormData({ ...formData, bio: e.target.value })} 
                 className="rounded-xl min-h-[120px] p-4 bg-background border border-border text-lg outline-none w-full resize-none transition-all" 
@@ -302,13 +310,13 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
           </CardHeader>
           <CardContent className="space-y-8">
             <div className="grid gap-3">
-              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Main Profile Photo</Label>
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Photo de Profil Principale</Label>
               {!formData.main_photo && !formData.main_photo_url ? (
                 <Label htmlFor="main_photo_edit" className="border-3 border-dashed border-border rounded-2xl p-12 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-primary/60 hover:bg-primary/5 transition-all">
                   <Upload className="w-12 h-12 text-primary" />
                   <div className="text-center">
-                    <span className="text-lg font-bold block mb-1">Click to browse</span>
-                    <span className="text-sm text-muted-foreground">High-quality portrait recommended</span>
+                    <span className="text-lg font-bold block mb-1">Cliquez pour parcourir</span>
+                    <span className="text-sm text-muted-foreground">Portrait de haute qualité recommandé</span>
                   </div>
                   <Input id="main_photo_edit" type="file" className="hidden" accept="image/*" onChange={e => setFormData({ ...formData, main_photo: e.target.files?.[0] || null })} />
                 </Label>
@@ -323,12 +331,12 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
             </div>
 
             <div className="grid gap-3">
-              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Video Showreel Link (YouTube/Vimeo)</Label>
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Lien Video Showreel (YouTube/Vimeo)</Label>
               <Input placeholder="https://youtube.com/watch?v=..." value={formData.video_url} onChange={e => setFormData({ ...formData, video_url: e.target.value })} className="rounded-xl h-14 bg-background border-border text-lg" />
             </div>
 
             <div className="grid gap-3">
-              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Portfolio Gallery (Max 5)</Label>
+              <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Galerie Portfolio (Max 5)</Label>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 {formData.gallery_photo_urls.map((url, i) => (
                   <div key={`existing-${i}`} className="relative aspect-square rounded-xl overflow-hidden group border border-border shadow-lg">
@@ -386,7 +394,7 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
                 {step > s ? <CheckCircle2 className="w-6 h-6" /> : s}
               </div>
               <span className={`text-sm font-bold uppercase tracking-widest hidden sm:block ${step >= s ? 'text-primary' : 'text-muted-foreground'}`}>
-                {s === 1 ? 'Identity' : s === 2 ? 'Professional' : 'Media'}
+                {s === 1 ? 'Identité' : s === 2 ? 'Professionnel' : 'Média'}
               </span>
               {s < 3 && <div className={`h-[2px] w-8 sm:w-20 transition-all duration-500 ${step > s ? 'bg-primary' : 'bg-muted'}`} />}
             </div>
@@ -398,37 +406,39 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} key="step1">
               <Card className="rounded-2xl border-border/40 shadow-2xl bg-card/50 backdrop-blur-xl overflow-hidden">
                 <CardHeader className="text-center">
-                  <CardTitle className="text-3xl font-bold">Identity</CardTitle>
-                  <CardDescription className="text-base text-muted-foreground uppercase tracking-widest font-medium">Step 1 of 3</CardDescription>
+                  <CardTitle className="text-3xl font-bold">Identité</CardTitle>
+                  <CardDescription className="text-base text-muted-foreground uppercase tracking-widest font-medium">Étape 1 sur 3</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6 pt-4">
                   <div className="grid gap-3">
-                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Full Name</Label>
-                    <Input placeholder="John Doe" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} className="rounded-xl h-14 bg-background border-border text-lg focus:ring-primary/20 transition-all" />
+                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Nom Complet</Label>
+                    <Input placeholder="Jean Dupont" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} className="rounded-xl h-14 bg-background border-border text-lg focus:ring-primary/20 transition-all" />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="grid gap-3">
-                      <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">City</Label>
+                      <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Ville</Label>
                       <Select value={formData.city} onValueChange={v => setFormData({ ...formData, city: v })}>
-                        <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg"><SelectValue placeholder="Select city" /></SelectTrigger>
-                        <SelectContent className="rounded-xl border-border">{CITIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                        <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg"><SelectValue placeholder="Sélectionnez une ville" /></SelectTrigger>
+                        <SelectContent className="max-h-80">
+                      {WILAYAS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
+                    </SelectContent>
                       </Select>
                     </div>
                     <div className="grid gap-3">
-                      <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Gender</Label>
+                      <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Sexe</Label>
                       <Select value={formData.gender} onValueChange={v => setFormData({ ...formData, gender: v })}>
-                        <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg"><SelectValue placeholder="Gender" /></SelectTrigger>
+                        <SelectTrigger className="rounded-xl h-14 bg-background border-border text-lg"><SelectValue placeholder="Sexe" /></SelectTrigger>
                         <SelectContent className="rounded-xl border-border">
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="any">Other / Prefer not to say</SelectItem>
+                          <SelectItem value="male">Homme</SelectItem>
+                          <SelectItem value="female">Femme</SelectItem>
+                          <SelectItem value="any">Autre / Non spécifié</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div className="grid gap-3">
-                      <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Min Play Age</Label>
+                      <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Âge Apparent Min</Label>
                       <Input 
                         type="number" 
                         value={formData.age_play_min} 
@@ -440,7 +450,7 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
                       />
                     </div>
                     <div className="grid gap-3">
-                      <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Max Play Age</Label>
+                      <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Âge Apparent Max</Label>
                       <Input 
                         type="number" 
                         value={formData.age_play_max} 
@@ -454,7 +464,7 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
                   </div>
                 </CardContent>
                 <CardFooter className="p-8 border-t border-border/40 flex justify-end bg-muted/20">
-                  <Button onClick={nextStep} disabled={!isStep1Valid} className="rounded-xl px-12 bg-primary text-primary-foreground h-14 text-lg font-bold shadow-[0_4px_20px_rgba(251,191,36,0.2)] hover:opacity-90 transition-all">Continue <ArrowRight className="ml-2 w-5 h-5" /></Button>
+                  <Button onClick={nextStep} disabled={!isStep1Valid} className="rounded-xl px-12 bg-primary text-primary-foreground h-14 text-lg font-bold shadow-[0_4px_20px_rgba(251,191,36,0.2)] hover:opacity-90 transition-all">Continuer <ArrowRight className="ml-2 w-5 h-5" /></Button>
                 </CardFooter>
               </Card>
             </motion.div>
@@ -464,12 +474,12 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} key="step2">
               <Card className="rounded-2xl border-border/40 shadow-2xl bg-card/50 backdrop-blur-xl overflow-hidden">
                 <CardHeader className="text-center">
-                  <CardTitle className="text-3xl font-bold">Professional</CardTitle>
-                  <CardDescription className="text-base text-muted-foreground uppercase tracking-widest font-medium">Step 2 of 3</CardDescription>
+                  <CardTitle className="text-3xl font-bold">Professionnel</CardTitle>
+                  <CardDescription className="text-base text-muted-foreground uppercase tracking-widest font-medium">Étape 2 sur 3</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8 pt-4">
                   <div className="space-y-4">
-                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">My Categories</Label>
+                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Mes Catégories</Label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       {CATEGORIES.map(cat => (
                         <div key={cat} className={`flex items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.categories.includes(cat) ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground hover:border-primary/40'}`}
@@ -483,7 +493,7 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Languages I Speak</Label>
+                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Langues parlées</Label>
                     <div className="flex flex-wrap gap-3">
                       {LANGUAGES.map(lang => (
                         <div key={lang.id} className={`px-5 py-3 rounded-full border-2 transition-all cursor-pointer ${formData.languages.includes(lang.id) ? 'border-primary bg-primary text-primary-foreground font-bold shadow-lg' : 'border-border bg-background text-muted-foreground'}`}
@@ -497,9 +507,9 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
                     </div>
                   </div>
                   <div className="grid gap-3 pt-4">
-                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">My Bio</Label>
+                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Ma Biographie</Label>
                     <textarea 
-                      placeholder="Briefly describe your experience, training, and what makes you unique..." 
+                      placeholder="Décrivez brièvement votre expérience, votre formation et ce qui vous rend unique..." 
                       value={formData.bio} 
                       onChange={e => setFormData({ ...formData, bio: e.target.value })} 
                       className="rounded-xl min-h-[120px] p-4 bg-background border border-border text-lg focus:ring-primary/20 outline-none w-full resize-none transition-all" 
@@ -507,8 +517,8 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
                   </div>
                 </CardContent>
                 <CardFooter className="p-8 border-t border-border/40 flex justify-between bg-muted/20">
-                  <Button variant="ghost" onClick={prevStep} className="rounded-xl px-10 h-14 font-bold text-lg hover:text-primary transition-colors">Back</Button>
-                  <Button onClick={nextStep} disabled={formData.categories.length === 0} className="rounded-xl px-12 bg-primary text-primary-foreground h-14 text-lg font-bold shadow-[0_4px_20px_rgba(251,191,36,0.2)] hover:opacity-90 transition-all">Next Step <ArrowRight className="ml-2 w-5 h-5" /></Button>
+                  <Button variant="ghost" onClick={prevStep} className="rounded-xl px-10 h-14 font-bold text-lg hover:text-primary transition-colors">Retour</Button>
+                  <Button onClick={nextStep} disabled={formData.categories.length === 0} className="rounded-xl px-12 bg-primary text-primary-foreground h-14 text-lg font-bold shadow-[0_4px_20px_rgba(251,191,36,0.2)] hover:opacity-90 transition-all">Suivant <ArrowRight className="ml-2 w-5 h-5" /></Button>
                 </CardFooter>
               </Card>
             </motion.div>
@@ -518,18 +528,18 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} key="step3">
               <Card className="rounded-2xl border-border/40 shadow-2xl bg-card/50 backdrop-blur-xl overflow-hidden">
                 <CardHeader className="text-center">
-                  <CardTitle className="text-3xl font-bold">Media</CardTitle>
-                  <CardDescription className="text-base text-muted-foreground uppercase tracking-widest font-medium">Step 3 of 3</CardDescription>
+                  <CardTitle className="text-3xl font-bold">Média</CardTitle>
+                  <CardDescription className="text-base text-muted-foreground uppercase tracking-widest font-medium">Étape 3 sur 3</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8 pt-4">
                   <div className="grid gap-3">
-                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Main Profile Photo</Label>
+                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Photo de Profil Principale</Label>
                     {!formData.main_photo && !formData.main_photo_url ? (
                       <Label htmlFor="main_photo" className="border-3 border-dashed border-border rounded-2xl p-12 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-primary/60 hover:bg-primary/5 transition-all">
                         <Upload className="w-12 h-12 text-primary shadow-[0_0_10px_rgba(251,191,36,0.2)]" />
                         <div className="text-center">
-                          <span className="text-lg font-bold block mb-1">Click to browse</span>
-                          <span className="text-sm text-muted-foreground">High-quality portrait recommended</span>
+                          <span className="text-lg font-bold block mb-1">Cliquez pour parcourir</span>
+                          <span className="text-sm text-muted-foreground">Portrait de haute qualité recommandé</span>
                         </div>
                         <Input id="main_photo" type="file" className="hidden" accept="image/*" onChange={e => setFormData({ ...formData, main_photo: e.target.files?.[0] || null })} />
                       </Label>
@@ -544,12 +554,12 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
                   </div>
 
                   <div className="grid gap-3 pt-4">
-                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Video Showreel Link (YouTube/Vimeo)</Label>
+                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Lien Vidéo Showreel (YouTube/Vimeo)</Label>
                     <Input placeholder="https://youtube.com/watch?v=..." value={formData.video_url} onChange={e => setFormData({ ...formData, video_url: e.target.value })} className="rounded-xl h-14 bg-background border-border text-lg focus:ring-primary/20 transition-all" />
                   </div>
 
                   <div className="grid gap-3 pt-4">
-                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Portfolio Gallery (Max 5)</Label>
+                    <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Galerie Portfolio (Max 5)</Label>
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                       {formData.gallery_photo_urls.map((url, i) => (
                         <div key={`existing-${i}`} className="relative aspect-square rounded-xl overflow-hidden group border border-border shadow-lg">
@@ -580,9 +590,9 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
                   </div>
                 </CardContent>
                 <CardFooter className="p-8 border-t border-border/40 flex justify-between bg-muted/20">
-                  <Button variant="ghost" onClick={prevStep} className="rounded-xl px-10 h-14 font-bold text-lg hover:text-primary transition-colors">Back</Button>
-                  <Button onClick={handleSubmit} disabled={loading || !isStep3LaunchReady} className="rounded-xl px-12 bg-primary text-primary-foreground h-14 text-lg font-bold shadow-[0_4px_25px_rgba(251,191,36,0.4)] hover:opacity-90 transition-all">
-                    {loading ? <><Loader2 className="w-6 h-6 mr-2 animate-spin" /> Publishing...</> : 'Launch My Profile'}
+                  <Button variant="ghost" onClick={prevStep} className="rounded-xl px-10 h-14 font-bold text-lg hover:text-primary transition-colors">Retour</Button>
+                  <Button onClick={handleSubmit} disabled={loading || !isStep3LaunchReady} className="rounded-xl px-12 bg-primary text-primary-foreground h-14 text-lg font-bold shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    {loading ? <><Loader2 className="w-6 h-6 mr-2 animate-spin" /> Création...</> : <><Sparkles className="w-6 h-6 mr-2" /> Lancer mon Profil</>}
                   </Button>
                 </CardFooter>
               </Card>

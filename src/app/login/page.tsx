@@ -10,12 +10,13 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { Film } from 'lucide-react'
+import { Film, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const { signIn, loading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,51 +51,69 @@ export default function LoginPage() {
         </div>
         
         <Card className="border-border/40 shadow-2xl rounded-2xl bg-card/50 backdrop-blur-xl">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-3xl font-bold tracking-tight">Login</CardTitle>
-            <CardDescription className="text-base">
-              Access your professional dashboard
+          <CardHeader className="space-y-1 pt-8">
+            <div className="flex justify-center mb-6">
+               <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+                  <Film className="w-8 h-8 text-black" />
+               </div>
+            </div>
+            <CardTitle className="text-3xl font-bold text-center tracking-tight">Bon retour !</CardTitle>
+            <CardDescription className="text-center text-muted-foreground text-sm">
+              Connectez-vous à votre compte professionnel
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
-            <CardContent className="grid gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email" className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Email Address</Label>
+            <CardContent className="space-y-4 px-8">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Email</Label>
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="name@email.com" 
+                  placeholder="nom@exemple.com" 
                   required 
                   className="rounded-xl h-12 bg-background border-border focus:ring-primary/20"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="password" className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Password</Label>
-                  <Link href="#" className="text-xs text-primary hover:underline font-bold">Forgot?</Link>
+                  <Label htmlFor="password" className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Mot de passe</Label>
+                  <Link href="#" className="text-xs text-primary hover:underline font-bold">Oublié ?</Link>
                 </div>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  required 
-                  className="rounded-xl h-12 bg-background border-border focus:ring-primary/20"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="relative">
+                  <Input 
+                    id="password" 
+                    type={showPassword ? "text" : "password"} 
+                    required 
+                    className="rounded-xl h-12 bg-background border-border focus:ring-primary/20 pr-10"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-6 mt-4 pb-8">
-              <Button type="submit" className="w-full rounded-xl bg-primary text-primary-foreground hover:opacity-90 h-14 font-bold text-lg shadow-[0_4px_20px_rgba(251,191,36,0.3)] transition-all" disabled={loading}>
-                {loading ? 'Authenticating...' : 'Enter Platform'}
+              <Button 
+                type="submit" 
+                className="w-full h-12 rounded-xl bg-primary text-black font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20" 
+                disabled={loading}
+              >
+                {loading ? "Chargement..." : "Se connecter"}
               </Button>
-              <div className="text-sm text-center text-muted-foreground">
-                New to the network?{' '}
-                <Link href="/signup" className="text-primary hover:underline font-bold">
-                  Join for free
+              <p className="text-center text-sm text-muted-foreground">
+                Vous n'avez pas de compte ?{' '}
+                <Link href="/signup" className="text-primary font-bold hover:underline">
+                  Inscrivez-vous
                 </Link>
-              </div>
+              </p>
             </CardFooter>
           </form>
         </Card>

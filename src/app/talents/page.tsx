@@ -12,6 +12,7 @@ import {
   MapPin, 
   User, 
   Filter,
+  ArrowLeft,
   Star,
   ChevronRight,
   UserCheck,
@@ -20,20 +21,15 @@ import {
   X
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 
 import { toggleShortlist } from '@/app/actions/shortlist'
 import { toast } from 'sonner'
 
-const CITIES = ['Alger', 'Oran', 'Constantine', 'Annaba', 'Blida', 'Batna', 'Sétif', 'Chlef', 'Djelfa', 'Sidi Bel Abbès']
-const LANGUAGE_OPTIONS = [
-  { id: 'AR', label: 'Arabe' },
-  { id: 'DZ', label: 'Derja' },
-  { id: 'KAB', label: 'Kabyle' },
-  { id: 'FR', label: 'Français' },
-  { id: 'EN', label: 'English' },
-]
+import { WILAYAS, CATEGORIES, LANGUAGES as LANGUAGE_OPTIONS } from '@/lib/constants'
+
 
 export default function TalentDiscoveryPage() {
   const [talents, setTalents] = useState<any[]>([])
@@ -45,6 +41,7 @@ export default function TalentDiscoveryPage() {
   const [selectedLanguage, setSelectedLanguage] = useState('all')
   const [shortlistedIds, setShortlistedIds] = useState<Set<string>>(new Set())
   const [showFilters, setShowFilters] = useState(false)
+  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
@@ -67,6 +64,14 @@ export default function TalentDiscoveryPage() {
 
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
+      // Security check: Only agencies can see this page
+      const { data: profile } = await supabase.from('profiles').select('role, recruiter_subtype').eq('id', user.id).single()
+      if (profile?.role !== 'recruiter' || profile?.recruiter_subtype !== 'agency') {
+        toast.error('Accès restreint aux Agences.')
+        router.push('/dashboard')
+        return
+      }
+
       const { data: shortlistData } = await supabase
         .from('shortlists')
         .select('talent_id')
@@ -98,9 +103,14 @@ export default function TalentDiscoveryPage() {
     }
   }
 
-  const categories = ['All', 'Actor', 'Model', 'Dancer', 'Voice Over', 'Extra', 'Influencer']
+  const categories = ['All', ...CATEGORIES]
 
-  const activeFilterCount = [selectedCity !== 'all', selectedGender !== 'all', selectedLanguage !== 'all'].filter(Boolean).length
+  const activeFilterCount = [
+    selectedCity !== 'all', 
+    selectedGender !== 'all', 
+    selectedLanguage !== 'all',
+    selectedCategory !== 'All'
+  ].filter(Boolean).length
 
   const filteredTalents = talents.filter(talent => {
     const matchesSearch = talent.full_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -124,6 +134,12 @@ export default function TalentDiscoveryPage() {
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-6 md:p-12">
       <div className="max-w-7xl mx-auto">
+        <Button asChild variant="ghost" className="text-slate-400 hover:text-white mb-8 group -ml-4">
+          <Link href="/dashboard">
+            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" /> Retour au Dashboard
+          </Link>
+        </Button>
+
         <header className="mb-8 md:mb-12 flex flex-col md:flex-row justify-between items-end gap-6">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -138,7 +154,7 @@ export default function TalentDiscoveryPage() {
             </h1>
             <p className="text-slate-400 mt-2 text-base sm:text-lg flex items-center gap-2">
               <span>Parcourez les profils vérifiés pour vos projets.</span>
-              <span className="text-xs bg-slate-800 px-2 py-0.5 rounded font-arabic" dir="rtl">اكتشف أفضل المواهب لمشاريعك</span>
+              <span className="text-lg bg-slate-800/80 px-3 py-1 rounded-lg font-arabic border border-slate-700" dir="rtl">اكتشف أفضل المواهب لمشاريعك</span>
             </p>
           </motion.div>
           
@@ -156,9 +172,8 @@ export default function TalentDiscoveryPage() {
           </div>
         </header>
 
-        {/* Search + Category */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
+        <div className="mb-6">
+          <div className="relative w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
             <Input 
               placeholder="Rechercher par nom, bio, compétences..." 
@@ -167,23 +182,8 @@ export default function TalentDiscoveryPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-            {categories.map(cat => (
-              <Button
-                key={cat}
-                variant={selectedCategory === cat ? 'default' : 'ghost'}
-                className={`h-14 px-4 sm:px-6 rounded-2xl font-bold transition-all whitespace-nowrap ${
-                  selectedCategory === cat 
-                    ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20' 
-                    : 'text-slate-400 hover:text-white hover:bg-white/10'
-                }`}
-                onClick={() => setSelectedCategory(cat)}
-              >
-                {cat}
-              </Button>
-            ))}
-          </div>
         </div>
+
 
         {/* Advanced Filters Panel */}
         {showFilters && (
@@ -201,16 +201,28 @@ export default function TalentDiscoveryPage() {
                 </Button>
               )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+              <div>
+                <label className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2 block">Catégorie / Rôle</label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="rounded-xl h-12 bg-black/50 border-slate-700 text-white">
+                    <SelectValue placeholder="Toutes les catégories" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl max-h-80">
+                    <SelectItem value="All">Toutes les catégories</SelectItem>
+                    {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <label className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2 block">Ville</label>
                 <Select value={selectedCity} onValueChange={setSelectedCity}>
                   <SelectTrigger className="rounded-xl h-12 bg-black/50 border-slate-700 text-white">
                     <SelectValue placeholder="Toutes les villes" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl">
+                  <SelectContent className="rounded-xl max-h-80">
                     <SelectItem value="all">Toutes les villes</SelectItem>
-                    {CITIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {WILAYAS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
