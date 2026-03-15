@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { PlusCircle, UserCircle, ListFilter, Film, LogOut, LayoutDashboard, Settings, Star, CheckCircle2, Search, MessageSquare, Zap, MapPin } from 'lucide-react'
+import { PlusCircle, UserCircle, ListFilter, Film, LayoutDashboard, Settings, Star, CheckCircle2, Search, MessageSquare, Zap, MapPin } from 'lucide-react'
+import { LogoutButton } from '@/components/auth/logout-button'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -148,11 +149,7 @@ export default async function DashboardPage() {
                   <p className="text-sm font-bold leading-tight">{profile?.email?.split('@')[0]}</p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black text-primary">{profile?.role}</p>
                 </div>
-                <Button variant="ghost" size="icon" className="rounded-xl hover:bg-primary/10 text-primary" asChild>
-                  <Link href="/auth/logout">
-                     <LogOut className="w-5 h-5" />
-                  </Link>
-                </Button>
+                <LogoutButton />
               </div>
             </div>
         </div>
