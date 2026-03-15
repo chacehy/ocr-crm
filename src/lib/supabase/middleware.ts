@@ -33,7 +33,12 @@ export async function updateSession(request: NextRequest) {
 
     const {
         data: { user },
+        error
     } = await supabase.auth.getUser()
+
+    console.log('Middleware Path:', request.nextUrl.pathname)
+    console.log('Middleware User:', user?.id || 'null')
+    if (error) console.error('Middleware Auth Error:', error.message)
 
     if (
         !user &&
