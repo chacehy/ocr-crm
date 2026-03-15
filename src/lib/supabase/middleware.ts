@@ -27,18 +27,18 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    // IMPORTANT: Avoid writing any logic between createServerClient and
-    // supabase.auth.getUser(). A simple mistake can make it very hard to debug
-    // issues with sessions being lost.
+    // Log cookie count to see if they are actually being sent
+    const cookieCount = request.cookies.getAll().length
+    console.log(`Middleware: ${request.nextUrl.pathname} | Cookies: ${cookieCount}`)
 
     const {
         data: { user },
         error
     } = await supabase.auth.getUser()
 
-    console.log('Middleware Path:', request.nextUrl.pathname)
-    console.log('Middleware User:', user?.id || 'null')
-    if (error) console.error('Middleware Auth Error:', error.message)
+    if (error) {
+        console.error('Middleware Auth Error:', error.message)
+    }
 
     if (
         !user &&
@@ -48,21 +48,11 @@ export async function updateSession(request: NextRequest) {
         !request.nextUrl.pathname.startsWith('/api/webhooks') &&
         request.nextUrl.pathname !== '/'
     ) {
-        // no user, potentially respond by redirecting the user to the login page
+        console.log('Middleware: Redirecting to /login from', request.nextUrl.pathname)
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)
     }
-
-    // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-    // creating a new response object with NextResponse.next() make sure to:
-    // 1. Pass the request in it, like so:
-    //    const myNewResponse = NextResponse.next({ request })
-    // 2. Copy over the cookies, like so:
-    //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-    // 3. Change the myNewResponse object to fit your needs, but avoid changing
-    //    the cookies!
-    // 4. Finally: return myNewResponse
 
     return supabaseResponse
 }
