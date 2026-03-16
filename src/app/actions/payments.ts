@@ -24,8 +24,8 @@ export async function initiatePayment(planId: 'freelance' | 'agency_6m' | 'agenc
     // Create Chargily Checkout
     const response = await createChargilyCheckout({
         amount,
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/payment-success`,
-        failure_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/pricing`,
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/payment-success`,
+        failure_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
         metadata: {
             user_id: user.id,
             plan_id: planId,
