@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { verifySignature } from '@chargily/chargily-pay';
 
 /**
@@ -8,18 +7,23 @@ import { verifySignature } from '@chargily/chargily-pay';
 export async function POST(req: Request) {
     try {
         const rawBody = await req.text();
-        const signature = req.headers.get('x-signature');
+        // Chargily sends the HMAC signature in the 'signature' header (not 'x-signature')
+        const signature = req.headers.get('signature');
         const secretKey = process.env.CHARGILY_SECRET_KEY;
 
         if (!signature || !secretKey) {
+            console.error('Chargily Webhook: Missing signature or secret key', {
+                hasSignature: !!signature,
+                hasSecretKey: !!secretKey,
+            });
             return NextResponse.json({ error: 'Missing signature or secret key' }, { status: 400 });
         }
 
-        // Verify Signature
-        const isValid = verifySignature(Buffer.from(rawBody), signature, secretKey);
-
-        if (!isValid) {
-            console.error('Chargily Webhook: Invalid signature');
+        // Verify Signature — SDK throws on invalid, so wrap in try/catch
+        try {
+            verifySignature(Buffer.from(rawBody), signature, secretKey);
+        } catch (sigError: any) {
+            console.error('Chargily Webhook: Invalid signature', sigError.message);
             return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
         }
 
