@@ -16,6 +16,7 @@ export interface CreateCheckoutParams {
   amount: number;
   success_url: string;
   failure_url?: string;
+  webhook_endpoint?: string;
   metadata?: any;
   email?: string;
   name?: string;
@@ -31,6 +32,7 @@ export async function createChargilyCheckout(params: CreateCheckoutParams) {
       currency: 'dzd',
       success_url: params.success_url,
       failure_url: params.failure_url,
+      webhook_endpoint: params.webhook_endpoint,
       metadata: params.metadata,
       // Note: In V2 SDK, nested fields like customer information can be passed
       // but for a simple checkout, amount and urls are often enough.

@@ -22,10 +22,12 @@ export async function initiatePayment(planId: 'freelance' | 'agency_6m' | 'agenc
     const amount = prices[planId];
 
     // Create Chargily Checkout
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://castingconnectdz.vercel.app';
     const response = await createChargilyCheckout({
         amount,
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/payment-success`,
-        failure_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
+        success_url: `${appUrl}/dashboard/payment-success`,
+        failure_url: `${appUrl}/pricing`,
+        webhook_endpoint: `${appUrl}/api/webhooks/chargily`,
         metadata: {
             user_id: user.id,
             plan_id: planId,
