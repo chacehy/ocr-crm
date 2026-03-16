@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Loader2, Upload, X, CheckCircle2, Film, ArrowRight, Sparkles, Save } from 'lucide-react'
+import { Loader2, Upload, X, CheckCircle2, Film, ArrowRight, Sparkles, Save, Phone, Instagram, Facebook, MessageSquare } from 'lucide-react'
 import { WILAYAS, CATEGORIES, LANGUAGES } from '@/lib/constants'
+import { Checkbox } from '@/components/ui/checkbox'
 
 
 
@@ -40,10 +41,21 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
     languages: [] as string[],
     bio: '',
     video_url: '',
+    phone_number: '',
+    whatsapp_number: '',
+    instagram_url: '',
+    facebook_url: '',
     main_photo: null as File | null,
     main_photo_url: '', // For existing photo
     gallery: [] as File[],
     gallery_photo_urls: [] as string[], // For existing gallery
+    visibility_settings: {
+      phone: true,
+      whatsapp: true,
+      instagram: true,
+      facebook: true,
+      email: true
+    }
   })
 
   useEffect(() => {
@@ -81,8 +93,19 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
           categories: profile.categories || [],
           languages: profile.languages || [],
           bio: profile.bio || '',
+          phone_number: profile.phone_number || '',
+          whatsapp_number: profile.whatsapp_number || '',
+          instagram_url: profile.instagram_url || '',
+          facebook_url: profile.facebook_url || '',
           main_photo_url: profile.main_photo_url || '',
           gallery_photo_urls: profile.gallery_photo_urls || [],
+          visibility_settings: profile.visibility_settings || {
+            phone: true,
+            whatsapp: true,
+            instagram: true,
+            facebook: true,
+            email: true
+          }
         }))
 
         // Fetch video link
@@ -148,6 +171,11 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
         bio: formData.bio,
         main_photo_url: final_main_photo_url,
         gallery_photo_urls: final_gallery_urls,
+        phone_number: formData.phone_number,
+        whatsapp_number: formData.whatsapp_number,
+        instagram_url: formData.instagram_url,
+        facebook_url: formData.facebook_url,
+        visibility_settings: formData.visibility_settings,
         updated_at: new Date().toISOString(),
       }
 
@@ -250,6 +278,102 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
               <div className="grid gap-3">
                 <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Âge Apparent Max</Label>
                 <Input type="number" value={formData.age_play_max} onChange={e => { const val = e.target.value === '' ? '' : parseInt(e.target.value); setFormData({ ...formData, age_play_max: val }) }} className="rounded-xl h-14 bg-background border-border text-lg" />
+              </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2 pt-4 border-t border-border/20">
+              <div className="grid gap-3">
+                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground flex justify-between">
+                  <span>Téléphone</span>
+                  <div className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox 
+                      id="show_phone" 
+                      checked={formData.visibility_settings.phone} 
+                      onCheckedChange={(checked) => setFormData({ ...formData, visibility_settings: { ...formData.visibility_settings, phone: !!checked } })}
+                    />
+                    <span className="text-[10px] normal-case font-normal">Public</span>
+                  </div>
+                </Label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="0XXX XX XX XX" 
+                    value={formData.phone_number} 
+                    onChange={e => setFormData({ ...formData, phone_number: e.target.value })} 
+                    className="rounded-xl h-14 bg-background border-border pl-12 text-lg" 
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground flex justify-between">
+                  <span>WhatsApp</span>
+                  <div className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox 
+                      id="show_whatsapp" 
+                      checked={formData.visibility_settings.whatsapp} 
+                      onCheckedChange={(checked) => setFormData({ ...formData, visibility_settings: { ...formData.visibility_settings, whatsapp: !!checked } })}
+                    />
+                    <span className="text-[10px] normal-case font-normal">Public</span>
+                  </div>
+                </Label>
+                <div className="relative">
+                  <MessageSquare className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Ex: 213XXXXXXXXX" 
+                    value={formData.whatsapp_number} 
+                    onChange={e => setFormData({ ...formData, whatsapp_number: e.target.value })} 
+                    className="rounded-xl h-14 bg-background border-border pl-12 text-lg" 
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-3">
+                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground flex justify-between">
+                  <span>Instagram</span>
+                  <div className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox 
+                      id="show_instagram" 
+                      checked={formData.visibility_settings.instagram} 
+                      onCheckedChange={(checked) => setFormData({ ...formData, visibility_settings: { ...formData.visibility_settings, instagram: !!checked } })}
+                    />
+                    <span className="text-[10px] normal-case font-normal">Public</span>
+                  </div>
+                </Label>
+                <div className="relative">
+                  <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="username" 
+                    value={formData.instagram_url} 
+                    onChange={e => setFormData({ ...formData, instagram_url: e.target.value })} 
+                    className="rounded-xl h-14 bg-background border-border pl-12 text-lg" 
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground flex justify-between">
+                  <span>Facebook</span>
+                  <div className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox 
+                      id="show_facebook" 
+                      checked={formData.visibility_settings.facebook} 
+                      onCheckedChange={(checked) => setFormData({ ...formData, visibility_settings: { ...formData.visibility_settings, facebook: !!checked } })}
+                    />
+                    <span className="text-[10px] normal-case font-normal">Public</span>
+                  </div>
+                </Label>
+                <div className="relative">
+                  <Facebook className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="URL profil" 
+                    value={formData.facebook_url} 
+                    onChange={e => setFormData({ ...formData, facebook_url: e.target.value })} 
+                    className="rounded-xl h-14 bg-background border-border pl-12 text-lg" 
+                  />
+                </div>
               </div>
             </div>
           </CardContent>
@@ -460,6 +584,102 @@ export default function TalentWizard({ isEditing = false }: TalentWizardProps) {
                         }} 
                         className="rounded-xl h-14 bg-background border-border text-lg focus:ring-primary/20" 
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6 md:grid-cols-2 pt-4 border-t border-border/20">
+                    <div className="grid gap-3">
+                      <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground flex justify-between">
+                        <span>Téléphone</span>
+                        <div className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox 
+                            id="show_phone_w" 
+                            checked={formData.visibility_settings.phone} 
+                            onCheckedChange={(checked) => setFormData({ ...formData, visibility_settings: { ...formData.visibility_settings, phone: !!checked } })}
+                          />
+                          <span className="text-[10px] normal-case font-normal">Public</span>
+                        </div>
+                      </Label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          placeholder="0XXX XX XX XX" 
+                          value={formData.phone_number} 
+                          onChange={e => setFormData({ ...formData, phone_number: e.target.value })} 
+                          className="rounded-xl h-14 bg-background border-border pl-12 text-lg" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3">
+                      <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground flex justify-between">
+                        <span>WhatsApp</span>
+                        <div className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox 
+                            id="show_whatsapp_w" 
+                            checked={formData.visibility_settings.whatsapp} 
+                            onCheckedChange={(checked) => setFormData({ ...formData, visibility_settings: { ...formData.visibility_settings, whatsapp: !!checked } })}
+                          />
+                          <span className="text-[10px] normal-case font-normal">Public</span>
+                        </div>
+                      </Label>
+                      <div className="relative">
+                        <MessageSquare className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          placeholder="Ex: 213XXXXXXXXX" 
+                          value={formData.whatsapp_number} 
+                          onChange={e => setFormData({ ...formData, whatsapp_number: e.target.value })} 
+                          className="rounded-xl h-14 bg-background border-border pl-12 text-lg" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="grid gap-3">
+                      <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground flex justify-between">
+                        <span>Instagram</span>
+                        <div className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox 
+                            id="show_instagram_w" 
+                            checked={formData.visibility_settings.instagram} 
+                            onCheckedChange={(checked) => setFormData({ ...formData, visibility_settings: { ...formData.visibility_settings, instagram: !!checked } })}
+                          />
+                          <span className="text-[10px] normal-case font-normal">Public</span>
+                        </div>
+                      </Label>
+                      <div className="relative">
+                        <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          placeholder="username" 
+                          value={formData.instagram_url} 
+                          onChange={e => setFormData({ ...formData, instagram_url: e.target.value })} 
+                          className="rounded-xl h-14 bg-background border-border pl-12 text-lg" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3">
+                      <Label className="text-xs uppercase tracking-widest font-bold text-muted-foreground flex justify-between">
+                        <span>Facebook</span>
+                        <div className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox 
+                            id="show_facebook_w" 
+                            checked={formData.visibility_settings.facebook} 
+                            onCheckedChange={(checked) => setFormData({ ...formData, visibility_settings: { ...formData.visibility_settings, facebook: !!checked } })}
+                          />
+                          <span className="text-[10px] normal-case font-normal">Public</span>
+                        </div>
+                      </Label>
+                      <div className="relative">
+                        <Facebook className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input 
+                          placeholder="URL profil" 
+                          value={formData.facebook_url} 
+                          onChange={e => setFormData({ ...formData, facebook_url: e.target.value })} 
+                          className="rounded-xl h-14 bg-background border-border pl-12 text-lg" 
+                        />
+                      </div>
                     </div>
                   </div>
                 </CardContent>

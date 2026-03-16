@@ -14,7 +14,8 @@ import {
   ArrowLeft,
   Loader2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  UserCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -39,7 +40,7 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
     // Get casting details
     const { data: castingData, error: castingError } = await supabase
       .from('castings')
-      .select('*')
+      .select('*, recruiter_profiles(*)')
       .eq('id', id)
       .single()
 
@@ -156,6 +157,25 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
                 <Calendar className="w-4 h-4 text-amber-500" /> Publié le {new Date(casting.created_at).toLocaleDateString()}
               </span>
             </div>
+
+            {/* Recruiter info */}
+            <Link href={`/recruiter/${casting.recruiter_id}`} className="mt-8 flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all w-fit group">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border-2 border-amber-500/20">
+                {casting.recruiter_profiles?.photo_url ? (
+                  <img src={casting.recruiter_profiles.photo_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-500">
+                    <UserCircle className="w-6 h-6" />
+                  </div>
+                )}
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase font-bold tracking-widest">Publié par</p>
+                <p className="font-bold text-white group-hover:text-amber-500 transition-colors">
+                  {casting.recruiter_profiles?.full_name || 'Recruteur'}
+                </p>
+              </div>
+            </Link>
           </motion.div>
 
           <motion.div

@@ -18,7 +18,8 @@ import {
   MessageSquare,
   Instagram,
   Clapperboard,
-  Video
+  Video,
+  Facebook
 } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -189,10 +190,15 @@ export default function TalentProfileDetailPage({ params }: { params: Promise<{ 
                <span className="flex items-center gap-2">
                  <User className="w-5 h-5 text-amber-500" /> {talent.age_play_min} - {talent.age_play_max} ans
                </span>
-               <span className="flex items-center gap-2">
-                 <Languages className="w-5 h-5 text-amber-500" /> {talent.languages?.join(', ')}
-               </span>
-             </div>
+                <span className="flex items-center gap-2">
+                  <Languages className="w-5 h-5 text-amber-500" /> {talent.languages?.join(', ')}
+                </span>
+                {talent.phone_number && (talent.visibility_settings?.phone ?? true) && (
+                   <span className="flex items-center gap-2">
+                     <Phone className="w-5 h-5 text-amber-500" /> {talent.phone_number}
+                   </span>
+                )}
+              </div>
 
              <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 mb-8 backdrop-blur-sm">
                 <p className="text-slate-300 leading-relaxed italic text-lg whitespace-pre-wrap">
@@ -200,14 +206,40 @@ export default function TalentProfileDetailPage({ params }: { params: Promise<{ 
                 </p>
              </div>
 
-             <div className="flex flex-wrap gap-4">
-               <Button className="bg-amber-500 text-black hover:bg-amber-400 font-bold px-8 h-14 rounded-xl shadow-lg shadow-amber-500/10">
-                 <Mail className="w-5 h-5 mr-2" /> Contacter
-               </Button>
-               <Button variant="outline" className="border-slate-800 text-slate-300 hover:bg-white/5 h-14 rounded-xl px-8">
-                 <Instagram className="w-5 h-5 mr-2" /> Réseaux Sociaux
-               </Button>
-             </div>
+              <div className="flex flex-wrap gap-4">
+                {(talent.visibility_settings?.email ?? true) && (
+                  <Button asChild className="bg-amber-500 text-black hover:bg-amber-400 font-bold px-8 h-14 rounded-xl shadow-lg shadow-amber-500/10">
+                    <a href={`mailto:${talent.profiles?.email}`}>
+                      <Mail className="w-5 h-5 mr-2" /> Contacter par Email
+                    </a>
+                  </Button>
+                )}
+                
+                {talent.whatsapp_number && (talent.visibility_settings?.whatsapp ?? true) && (
+                  <Button asChild variant="outline" className="border-green-500/20 text-green-500 hover:bg-green-500/10 h-14 rounded-xl px-8">
+                    <a href={`https://wa.me/${talent.whatsapp_number.replace(/\s+/g, '')}`} target="_blank" rel="noopener noreferrer">
+                      <MessageSquare className="w-5 h-5 mr-2" /> WhatsApp
+                    </a>
+                  </Button>
+                )}
+
+                <div className="flex gap-4">
+                  {talent.instagram_url && (talent.visibility_settings?.instagram ?? true) && (
+                    <Button asChild variant="outline" className="border-slate-800 text-slate-300 hover:bg-white/5 h-14 w-14 rounded-xl p-0">
+                      <a href={`https://instagram.com/${talent.instagram_url}`} target="_blank" rel="noopener noreferrer">
+                        <Instagram className="w-5 h-5" />
+                      </a>
+                    </Button>
+                  )}
+                  {talent.facebook_url && (talent.visibility_settings?.facebook ?? true) && (
+                    <Button asChild variant="outline" className="border-slate-800 text-slate-300 hover:bg-white/5 h-14 w-14 rounded-xl p-0">
+                      <a href={talent.facebook_url.startsWith('http') ? talent.facebook_url : `https://facebook.com/${talent.facebook_url}`} target="_blank" rel="noopener noreferrer">
+                        <Facebook className="w-5 h-5" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
           </div>
         </div>
 
@@ -312,11 +344,23 @@ export default function TalentProfileDetailPage({ params }: { params: Promise<{ 
                        <span className="text-slate-500 flex items-center gap-2"><User className="w-4 h-4" /> Âge de jeu</span>
                        <span className="text-white font-bold">{talent.age_play_min}-{talent.age_play_max} ans</span>
                     </div>
-                    <div className="flex justify-between items-center text-sm">
-                       <span className="text-slate-500 flex items-center gap-2"><Languages className="w-4 h-4" /> Langues</span>
-                       <span className="text-white font-bold text-right">{talent.languages?.join(', ')}</span>
-                    </div>
-                 </div>
+                     <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-500 flex items-center gap-2"><Languages className="w-4 h-4" /> Langues</span>
+                        <span className="text-white font-bold text-right">{talent.languages?.join(', ')}</span>
+                     </div>
+                     {(talent.visibility_settings?.phone ?? true) && talent.phone_number && (
+                        <div className="flex justify-between items-center text-sm">
+                           <span className="text-slate-500 flex items-center gap-2"><Phone className="w-4 h-4" /> Téléphone</span>
+                           <span className="text-white font-bold">{talent.phone_number}</span>
+                        </div>
+                     )}
+                     {(talent.visibility_settings?.email ?? true) && talent.profiles?.email && (
+                        <div className="flex justify-between items-center text-sm">
+                           <span className="text-slate-500 flex items-center gap-2"><Mail className="w-4 h-4" /> Email</span>
+                           <span className="text-white font-bold truncate max-w-[150px]">{talent.profiles.email}</span>
+                        </div>
+                     )}
+                  </div>
               </div>
 
               <div className="p-8 border border-slate-800 rounded-3xl bg-slate-900/20 text-center">

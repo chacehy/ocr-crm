@@ -17,6 +17,7 @@ export default function SignUpPage() {
   const { signUp, loading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [phone, setPhone] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [roleSelection, setRoleSelection] = useState('talent')
 
@@ -48,7 +49,11 @@ export default function SignUpPage() {
       return
     }
 
-    const { error } = await signUp(email, password, { role, recruiter_subtype })
+    const { error } = await signUp(email, password, { 
+      role, 
+      recruiter_subtype,
+      phone_number: phone 
+    })
     
     if (error) {
       toast.error(error.message)
@@ -166,6 +171,19 @@ export default function SignUpPage() {
                   className="rounded-xl h-12 bg-background border-border focus:ring-primary/20"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Numéro de téléphone</Label>
+                <Input 
+                  id="phone" 
+                  type="tel" 
+                  placeholder="0XXX XX XX XX" 
+                  required 
+                  className="rounded-xl h-12 bg-background border-border focus:ring-primary/20"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
               <div className="space-y-2">

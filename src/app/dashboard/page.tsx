@@ -21,6 +21,14 @@ export default async function DashboardPage() {
   if (!profile) {
     return <div className="min-h-screen bg-background flex items-center justify-center text-primary">Loading identity...</div>
   }
+
+  // Fetch recruiter metadata if applicable
+  let recruiterMeta = null
+  if (profile.role === 'recruiter') {
+    const { data: rMeta } = await supabase.from('recruiter_profiles').select('*').eq('user_id', user.id).single()
+    recruiterMeta = rMeta
+  }
+
   if (profile.role === 'talent') {
     const { data: talentProfile } = await supabase.from('talent_profiles').select('id').eq('user_id', user.id).single()
     if (!talentProfile) {
@@ -146,7 +154,10 @@ export default async function DashboardPage() {
               </Link>
               <div className="flex items-center gap-3 pl-6 border-l border-border/40">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-bold leading-tight">{profile?.email?.split('@')[0]}</p>
+                  <p className="text-sm font-bold leading-tight uppercase tracking-tight">
+                    {/* @ts-ignore */}
+                    {recruiterMeta?.full_name || profile?.email?.split('@')[0]}
+                  </p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black text-primary">{profile?.role}</p>
                 </div>
                 <LogoutButton />
@@ -162,10 +173,14 @@ export default async function DashboardPage() {
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
               Bienvenue, <span className="text-primary italic">{profile.full_name || (profile.role === 'talent' ? 'Artiste' : 'Recruteur')}</span>
             </h1>
-            <p className="text-muted-foreground mt-2 text-lg flex items-center gap-2">
-              <span>Gérez votre présence {profile.role === 'talent' ? 'artistique' : 'professionnelle'}.</span>
-               <span className="text-lg bg-slate-800 px-3 py-1 rounded font-arabic" dir="rtl">مرحباً بك في لوحة التحكم</span>
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mt-2">
+              <p className="text-muted-foreground text-lg">
+                Gérez votre présence {profile.role === 'talent' ? 'artistique' : 'professionnelle'}.
+              </p>
+              <div className="bg-primary/10 border border-primary/20 px-3 py-1 rounded-full flex items-center gap-2 w-fit">
+                <span className="text-primary font-arabic text-sm" dir="rtl">مرحباً بك في لوحة التحكم</span>
+              </div>
+            </div>
           </div>
           
           <div className="flex flex-wrap gap-4 items-center">
@@ -206,6 +221,15 @@ export default async function DashboardPage() {
                     <div className="flex flex-col items-start leading-tight">
                       <span>Mes Castings</span>
                       <span className="text-xs opacity-70 font-arabic" dir="rtl">إعلاناتي</span>
+                    </div>
+                  </Button>
+                </Link>
+                <Link href="/dashboard/recruiter/settings" className="w-full lg:w-auto">
+                  <Button variant="outline" className="w-full rounded-xl border-primary/20 bg-primary/5 text-primary h-14 px-6 font-bold text-lg hover:bg-primary/10 transition-all flex items-center justify-center gap-3">
+                    <Settings className="w-6 h-6" /> 
+                    <div className="flex flex-col items-start leading-tight">
+                      <span>Mon Profil Pro</span>
+                      <span className="text-xs opacity-70 font-arabic" dir="rtl">ملفي الشخضي</span>
                     </div>
                   </Button>
                 </Link>
