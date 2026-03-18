@@ -57,21 +57,57 @@ export async function POST(req: Request) {
                     throw error;
                 }
             } else if (plan_id.startsWith('agency_')) {
-                // Create/Update Subscription
+                // Check for existing active subscription
+                const { data: existingSub } = await supabase
+                    .from('subscriptions')
+                    .select('*')
+                    .eq('user_id', user_id)
+                    .eq('status', 'active')
+                    .gte('end_date', new Date().toISOString())
+                    .order('end_date', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
                 const months = plan_id === 'agency_6m' ? 6 : 12;
-                const { error } = await supabase
+                const timeToAdd = months * 30 * 24 * 60 * 60 * 1000;
+
+                let newStartDate = new Date();
+                let newEndDate = new Date(Date.now() + timeToAdd);
+
+                // If user currently has an active subscription, stack the time
+                if (existingSub) {
+                    newStartDate = new Date(existingSub.start_date);
+                    newEndDate = new Date(new Date(existingSub.end_date).getTime() + timeToAdd);
+
+                    // Delete the old sub or just update it, let's update it or just let it be and insert new
+                    // Better to update the existing one if we want to keep one active row, or invalidate old ones
+                    await supabase.from('subscriptions').update({ status: 'replaced' }).eq('id', existingSub.id);
+                }
+
+                // Create/Update Subscription
+                const { error: subError } = await supabase
                     .from('subscriptions')
                     .insert({
                         user_id,
                         plan: plan_id,
-                        start_date: new Date().toISOString(),
-                        end_date: new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000).toISOString(),
+                        start_date: newStartDate.toISOString(),
+                        end_date: newEndDate.toISOString(),
                         status: 'active'
                     });
 
-                if (error) {
-                    console.error('Supabase subscriptions error:', error);
-                    throw error;
+                if (subError) {
+                    console.error('Supabase subscriptions error:', subError);
+                    throw subError;
+                }
+
+                // Upgrade user role to agency in profiles
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .update({ recruiter_subtype: 'agency' })
+                    .eq('id', user_id);
+
+                if (profileError) {
+                    console.error('Supabase profile upgrade error:', profileError);
                 }
             }
 

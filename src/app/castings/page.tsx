@@ -43,6 +43,7 @@ export default function CastingsPage() {
       .from('castings')
       .select('*, profiles(email)')
       .eq('status', 'open')
+      .gte('expiry_date', new Date().toISOString())
       .order('created_at', { ascending: false })
 
     if (selectedCity !== 'All') {

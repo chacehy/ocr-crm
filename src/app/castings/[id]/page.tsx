@@ -28,6 +28,7 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
   const [applying, setApplying] = useState(false)
   const [hasApplied, setHasApplied] = useState(false)
   const [userProfile, setUserProfile] = useState<any>(null)
+  const [isOwner, setIsOwner] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -53,6 +54,16 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
 
     // Get current user and their talent profile
     const { data: { user } } = await supabase.auth.getUser()
+    
+    if (user && user.id === castingData.recruiter_id) {
+      setIsOwner(true)
+    } else if (castingData.status === 'draft') {
+      // Hide drafts from non-owners!
+      setCasting(null)
+      setLoading(false)
+      return
+    }
+
     if (user) {
       const { data: profileData } = await supabase
         .from('talent_profiles')
@@ -142,9 +153,13 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
                <Badge className="bg-amber-500 text-black font-bold">
                  {casting.project_type || 'Casting'}
                </Badge>
-               <Badge variant="outline" className="border-slate-700 text-slate-400">
-                 {casting.status === 'open' ? 'Actif' : 'Clôturé'}
-               </Badge>
+               {casting.status === 'draft' ? (
+                 <Badge variant="outline" className="border-slate-500 text-slate-400">Brouillon</Badge>
+               ) : (
+                 <Badge variant="outline" className="border-slate-700 text-slate-400">
+                   {casting.status === 'open' ? 'Actif' : 'Clôturé'}
+                 </Badge>
+               )}
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
               {casting.title}
@@ -183,7 +198,17 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
             animate={{ opacity: 1, scale: 1 }}
             className="w-full md:w-auto"
           >
-            {hasApplied ? (
+            {isOwner ? (
+              <div className="bg-primary/10 border border-primary/20 rounded-2xl p-6 text-center max-w-xs ml-auto">
+                <UserCircle className="w-10 h-10 text-primary mx-auto mb-2" />
+                <p className="text-white font-bold mb-4">C'est votre annonce</p>
+                <Button asChild className="w-full bg-primary text-primary-foreground font-bold">
+                  <Link href={`/dashboard/recruiter/castings/${casting.id}/applications`}>
+                    Voir Candidatures
+                  </Link>
+                </Button>
+              </div>
+            ) : hasApplied ? (
               <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-6 text-center">
                 <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-2" />
                 <p className="text-green-500 font-bold">Candidature Envoyée</p>

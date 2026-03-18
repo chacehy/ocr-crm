@@ -53,6 +53,7 @@ export default async function PublicRecruiterProfilePage({ params }: PageProps) 
     .select('*')
     .eq('recruiter_id', id)
     .eq('status', 'open')
+    .gte('expiry_date', new Date().toISOString())
     .order('created_at', { ascending: false })
 
   const isAgency = profile?.profiles?.recruiter_subtype === 'agency'

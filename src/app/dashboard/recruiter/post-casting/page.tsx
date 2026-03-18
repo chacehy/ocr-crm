@@ -77,27 +77,11 @@ export default function PostCastingPage() {
       return
     }
 
-    // Call the RPC function we created
-    const { data: statusData, error } = await supabase.rpc('check_recruiter_active', { p_user_id: user.id })
+    // Call the RPC function we created just to get subtype
+    const { data: statusData } = await supabase.rpc('check_recruiter_active', { p_user_id: user.id })
+    const { data: profile } = await supabase.from('profiles').select('role, recruiter_subtype').eq('id', user.id).single()
     
-    if (error) {
-      console.error('Error checking status:', error)
-      toast.error('Erreur lors de la vérification du compte.')
-    } else {
-      // Get role info to decide if we allow posting
-      const { data: profile } = await supabase.from('profiles').select('role, recruiter_subtype').eq('id', user.id).single()
-      
-      const res = statusData[0]
-      setStatus({ ...res, role: profile?.role, subtype: profile?.recruiter_subtype })
-
-      if (!res.is_active) {
-        toast.error(res.reason)
-        // We allow them to SEE the page but they can't submit? 
-        // Or better: redirect to pricing if not active.
-        setTimeout(() => router.push('/pricing'), 2000)
-      }
-      // Note: Credit decrementing naturally handles the single post limit now, no need for the explicit count check here.
-    }
+    setStatus({ role: profile?.role, subtype: profile?.recruiter_subtype, is_active: statusData?.[0]?.is_active || false, reason: '', access_type: statusData?.[0]?.access_type })
     setChecking(false)
   }
 
@@ -109,37 +93,19 @@ export default function PostCastingPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Unauthorized')
 
-      // 10 days for credits, 30 days for subscriptions
-      const days = status?.access_type === 'credit' ? 10 : 30;
-      const expiry_date = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      // Insert as draft. No expiry date set yet.
+      const { error } = await supabase.from('castings').insert({
+          recruiter_id: user.id,
+          ...formData,
+          status: 'draft'
+      })
+      
+      if (error) throw error
 
-      if (status?.access_type === 'credit') {
-        const { error } = await supabase.rpc('create_casting_and_consume_credit', {
-            p_recruiter_id: user.id,
-            p_title: formData.title,
-            p_description: formData.description,
-            p_city: formData.city,
-            p_project_type: formData.project_type,
-            p_gender_pref: formData.gender_pref,
-            p_age_min: formData.age_min,
-            p_age_max: formData.age_max,
-            p_expiry_date: expiry_date
-        })
-        if (error) throw error
-      } else {
-        const { error } = await supabase.from('castings').insert({
-            recruiter_id: user.id,
-            ...formData,
-            expiry_date,
-            status: 'open'
-        })
-        if (error) throw error
-      }
-
-      toast.success('Annonce de casting publiée avec succès !')
+      toast.success('Brouillon enregistré ! Allez dans le tableau de bord pour publier.')
       router.push('/dashboard')
     } catch (error: any) {
-      toast.error(error.message)
+      toast.error(error.message || 'Une erreur est survenue.')
     } finally {
       setLoading(false)
     }
@@ -153,20 +119,7 @@ export default function PostCastingPage() {
     )
   }
 
-  if (status && !status.is_active) {
-    return (
-      <div className="min-h-screen bg-black text-white p-12 flex flex-col items-center justify-center text-center">
-        <AlertTriangle className="w-16 h-16 text-amber-500 mb-6" />
-        <h1 className="text-3xl font-bold mb-4 italic">Accès Restreint</h1>
-        <p className="text-slate-400 max-w-md mb-8">
-          Vous devez avoir un pack "Casting Express" ou un abonnement actif pour publier un nouveau casting.
-        </p>
-        <Button asChild className="bg-amber-500 text-black px-8 py-6 rounded-xl font-bold">
-          <Link href="/pricing">Voir les offres</Link>
-        </Button>
-      </div>
-    )
-  }
+  // Remove restricting view block so anyone can save as draft
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-10 font-sans">
@@ -274,18 +227,18 @@ export default function PostCastingPage() {
                   />
                 </div>
 
-                <div className="grid gap-3">
+                 <div className="grid gap-3">
                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                     <Calendar className="w-4 h-4" /> Annonce Visible Pendant
+                     <Calendar className="w-4 h-4" /> Durée de publication
                    </Label>
                    <div className="h-14 px-4 flex items-center bg-muted/20 border border-border rounded-xl text-muted-foreground italic">
-                     {status?.subtype === 'freelance' ? '7-10 jours (Inclus dans le pack)' : '30 jours (Standard Agency)'}
+                     {status?.subtype === 'freelance' ? 'Paiement requis à la publication (1 crédit)' : 'Actif tant que votre abonnement est valide'}
                    </div>
                 </div>
               </CardContent>
-              <CardFooter className="p-10 border-t border-border/40 bg-muted/20 flex justify-end">
+               <CardFooter className="p-10 border-t border-border/40 bg-muted/20 flex justify-end">
                 <Button type="submit" className="rounded-2xl bg-amber-500 text-black h-16 px-12 font-bold text-xl shadow-[0_4px_30px_rgba(251,191,36,0.3)] hover:opacity-90 transition-all" disabled={loading}>
-                  {loading ? 'Publication...' : 'Lancer le Casting'}
+                  {loading ? 'Enregistrement...' : 'Enregistrer le Brouillon'}
                 </Button>
               </CardFooter>
             </form>
