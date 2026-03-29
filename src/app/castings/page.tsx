@@ -17,7 +17,9 @@ import {
   ChevronRight,
   Film,
   X,
-  ArrowLeft
+  ArrowLeft,
+  DollarSign,
+  Star
 } from 'lucide-react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -191,9 +193,16 @@ export default function CastingsPage() {
                 <Card className="bg-slate-900/40 border-slate-800 hover:border-amber-500/50 transition-all duration-300 backdrop-blur-sm group h-full flex flex-col">
                   <CardHeader>
                     <div className="flex justify-between items-start mb-2">
-                       <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">
-                         {casting.project_type || 'Casting'}
-                       </Badge>
+                       <div className="flex gap-2 flex-wrap">
+                         <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">
+                           {casting.project_type || 'Casting'}
+                         </Badge>
+                         {casting.is_premium && (
+                           <Badge className="bg-purple-500/10 text-purple-400 border-purple-500/20">
+                             <Star className="w-3 h-3 mr-1" /> Premium
+                           </Badge>
+                         )}
+                       </div>
                        <span className="text-xs text-slate-500 flex items-center gap-1">
                          <Clock className="w-3 h-3" /> {new Date(casting.created_at).toLocaleDateString()}
                        </span>
@@ -216,6 +225,11 @@ export default function CastingsPage() {
                        <span className="flex items-center gap-1 px-2 py-1 bg-white/5 rounded text-xs text-slate-300">
                          <Briefcase className="w-3 h-3" /> {casting.gender_pref === 'any' ? 'H/F' : casting.gender_pref === 'male' ? 'H' : 'F'}
                        </span>
+                       {casting.rate && (
+                         <span className="flex items-center gap-1 px-2 py-1 bg-green-500/10 rounded text-xs text-green-400 font-bold">
+                           <DollarSign className="w-3 h-3" /> {casting.rate}
+                         </span>
+                       )}
                     </div>
                   </CardContent>
                   <CardFooter className="pt-4 border-t border-slate-800/50">

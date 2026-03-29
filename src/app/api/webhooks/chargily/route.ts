@@ -109,6 +109,60 @@ export async function POST(req: Request) {
                 if (profileError) {
                     console.error('Supabase profile upgrade error:', profileError);
                 }
+            } else if (plan_id.startsWith('talent_')) {
+                // Handle talent subscription
+                const { data: existingSub } = await supabase
+                    .from('subscriptions')
+                    .select('*')
+                    .eq('user_id', user_id)
+                    .eq('status', 'active')
+                    .gte('end_date', new Date().toISOString())
+                    .order('end_date', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                const timeToAdd = 365 * 24 * 60 * 60 * 1000; // 1 year
+
+                let newStartDate = new Date();
+                let newEndDate = new Date(Date.now() + timeToAdd);
+
+                // Stack time if existing active subscription
+                if (existingSub) {
+                    newStartDate = new Date(existingSub.start_date);
+                    newEndDate = new Date(new Date(existingSub.end_date).getTime() + timeToAdd);
+                    await supabase.from('subscriptions').update({ status: 'replaced' }).eq('id', existingSub.id);
+                }
+
+                const { error: subError } = await supabase
+                    .from('subscriptions')
+                    .insert({
+                        user_id,
+                        plan: plan_id,
+                        start_date: newStartDate.toISOString(),
+                        end_date: newEndDate.toISOString(),
+                        status: 'active'
+                    });
+
+                if (subError) {
+                    console.error('Supabase talent subscription error:', subError);
+                    throw subError;
+                }
+
+                // If Pro plan, add 2 training credits
+                if (plan_id === 'talent_pro') {
+                    const { data: talentProfile } = await supabase
+                        .from('talent_profiles')
+                        .select('training_credits')
+                        .eq('user_id', user_id)
+                        .single();
+
+                    if (talentProfile) {
+                        await supabase
+                            .from('talent_profiles')
+                            .update({ training_credits: (talentProfile.training_credits || 0) + 2 })
+                            .eq('user_id', user_id);
+                    }
+                }
             }
 
             console.log('Chargily Webhook: Fulfillment successful for user', user_id, 'Plan:', plan_id);

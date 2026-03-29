@@ -15,11 +15,21 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
-  UserCircle
+  UserCircle,
+  DollarSign,
+  Star
 } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { redirect } from 'next/navigation'
+import { redirect, useRouter } from 'next/navigation'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 export default function CastingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -29,6 +39,9 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
   const [hasApplied, setHasApplied] = useState(false)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [isOwner, setIsOwner] = useState(false)
+  const [talentSub, setTalentSub] = useState<any>(null)
+  const [showSubModal, setShowSubModal] = useState(false)
+  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
@@ -84,6 +97,19 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
         
         if (appData) setHasApplied(true)
       }
+
+      // Check talent subscription
+      const { data: subData } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .gte('end_date', new Date().toISOString())
+        .order('end_date', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      
+      setTalentSub(subData)
     }
 
     setLoading(false)
@@ -92,6 +118,19 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
   async function handleApply() {
     if (!userProfile) {
       toast.error("Veuillez d'abord compléter votre profil talent.")
+      return
+    }
+
+    // Check talent subscription
+    if (!talentSub) {
+      setShowSubModal(true)
+      return
+    }
+
+    // Check premium restriction
+    if (casting.is_premium && talentSub.plan === 'talent_basic') {
+      toast.error('Ce casting est réservé aux talents Premium et Pro. Mettez à jour votre abonnement.')
+      setShowSubModal(true)
       return
     }
 
@@ -143,6 +182,31 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
           </Link>
         </Button>
 
+        <Dialog open={showSubModal} onOpenChange={setShowSubModal}>
+          <DialogContent className="bg-slate-900 border-slate-800 text-white rounded-3xl p-8 max-w-md">
+            <DialogHeader className="text-center mb-4">
+              <div className="mx-auto w-16 h-16 bg-amber-500/10 flex items-center justify-center rounded-full mb-4">
+                <Star className="w-8 h-8 text-amber-500" />
+              </div>
+              <DialogTitle className="text-2xl font-bold">Abonnement requis</DialogTitle>
+              <DialogDescription className="text-slate-400 text-base mt-2">
+                {casting?.is_premium && talentSub?.plan === 'talent_basic'
+                  ? 'Ce casting est réservé aux talents Premium et Pro. Mettez à jour votre abonnement pour postuler.'
+                  : 'Pour postuler aux castings, vous devez souscrire à un abonnement annuel.'
+                }
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex-col sm:flex-col gap-3">
+              <Button asChild className="w-full h-12 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl">
+                <Link href="/talent-pricing">Voir les abonnements</Link>
+              </Button>
+              <Button onClick={() => setShowSubModal(false)} variant="ghost" className="w-full text-slate-400 hover:text-white rounded-xl">
+                Annuler
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -153,6 +217,11 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
                <Badge className="bg-amber-500 text-black font-bold">
                  {casting.project_type || 'Casting'}
                </Badge>
+               {casting.is_premium && (
+                 <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                   <Star className="w-3 h-3 mr-1" /> Premium
+                 </Badge>
+               )}
                {casting.status === 'draft' ? (
                  <Badge variant="outline" className="border-slate-500 text-slate-400">Brouillon</Badge>
                ) : (
@@ -171,6 +240,11 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
               <span className="flex items-center gap-1">
                 <Calendar className="w-4 h-4 text-amber-500" /> Publié le {new Date(casting.created_at).toLocaleDateString()}
               </span>
+              {casting.rate && (
+                <span className="flex items-center gap-1 text-green-400 font-bold">
+                  <DollarSign className="w-4 h-4" /> {casting.rate}
+                </span>
+              )}
             </div>
 
             {/* Recruiter info */}
@@ -280,6 +354,12 @@ export default function CastingDetailPage({ params }: { params: Promise<{ id: st
                    <span className="text-slate-500">Ville</span>
                    <span className="text-white font-medium">{casting.city}</span>
                  </div>
+                 {casting.rate && (
+                   <div className="flex justify-between text-sm">
+                     <span className="text-slate-500">Tarif</span>
+                     <span className="text-green-400 font-bold">{casting.rate}</span>
+                   </div>
+                 )}
                  <div className="flex justify-between text-sm">
                    <span className="text-slate-500">Expire le</span>
                    <span className="text-white font-medium">{casting.expiry_date ? new Date(casting.expiry_date).toLocaleDateString() : 'Non spécifié'}</span>

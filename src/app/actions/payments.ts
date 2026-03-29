@@ -4,7 +4,9 @@ import { createChargilyCheckout } from '@/lib/payments/chargily';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
-export async function initiatePayment(planId: 'freelance' | 'agency_6m' | 'agency_12m') {
+type PlanId = 'freelance' | 'agency_6m' | 'agency_12m' | 'talent_basic' | 'talent_premium' | 'talent_pro';
+
+export async function initiatePayment(planId: PlanId) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -12,11 +14,14 @@ export async function initiatePayment(planId: 'freelance' | 'agency_6m' | 'agenc
         redirect('/login');
     }
 
-    // Define amounts (examples)
-    const prices = {
-        freelance: 2500, // 2500 DZD for "Casting Express"
-        agency_6m: 15000, // 15,000 DZD
-        agency_12m: 25000, // 25,000 DZD
+    // Define amounts
+    const prices: Record<PlanId, number> = {
+        freelance: 2500,
+        agency_6m: 15000,
+        agency_12m: 25000,
+        talent_basic: 2000,
+        talent_premium: 5000,
+        talent_pro: 12000,
     };
 
     const amount = prices[planId];
@@ -42,3 +47,4 @@ export async function initiatePayment(planId: 'freelance' | 'agency_6m' | 'agenc
 
     return { error: response.message };
 }
+

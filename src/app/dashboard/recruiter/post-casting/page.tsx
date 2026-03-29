@@ -13,7 +13,10 @@ import {
   MapPin, 
   Users, 
   Calendar, 
-  AlertTriangle 
+  AlertTriangle,
+  DollarSign,
+  Star,
+  Check
 } from 'lucide-react'
 import Link from 'next/link'
 import { WILAYAS, PROJECT_TYPES } from '@/lib/constants'
@@ -39,6 +42,8 @@ export default function PostCastingPage() {
     gender_pref: 'any',
     age_min: 18,
     age_max: 60,
+    rate: '',
+    is_premium: false,
   })
 
   const [status, setStatus] = useState<{ is_active: boolean; reason: string; role: string; subtype: string; access_type?: string } | null>(null)
@@ -64,6 +69,8 @@ export default function PostCastingPage() {
         gender_pref: data.gender_pref || 'any',
         age_min: data.age_min || 18,
         age_max: data.age_max || 60,
+        rate: data.rate || '',
+        is_premium: data.is_premium || false,
       })
       toast.info('Casting dupliqué — modifiez les champs puis publiez.')
     }
@@ -225,6 +232,42 @@ export default function PostCastingPage() {
                     value={formData.description}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, description: e.target.value })}
                   />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid gap-3">
+                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" /> Tarif / Rémunération
+                    </Label>
+                    <Input 
+                      placeholder="ex: 5000 DA / jour" 
+                      value={formData.rate}
+                      onChange={e => setFormData({ ...formData, rate: e.target.value })}
+                      className="rounded-xl h-14 bg-background border-border text-lg focus:ring-primary/20"
+                    />
+                  </div>
+                  <div className="grid gap-3">
+                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <Star className="w-4 h-4" /> Casting Premium
+                    </Label>
+                    <div 
+                      onClick={() => setFormData({ ...formData, is_premium: !formData.is_premium })}
+                      className={`h-14 px-4 flex items-center gap-3 rounded-xl border cursor-pointer transition-all ${
+                        formData.is_premium 
+                          ? 'bg-amber-500/10 border-amber-500/40 text-amber-400' 
+                          : 'bg-background border-border text-muted-foreground'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                        formData.is_premium ? 'bg-amber-500 border-amber-500' : 'border-muted-foreground'
+                      }`}>
+                        {formData.is_premium && <Check className="w-3 h-3 text-black" />}
+                      </div>
+                      <span className="text-sm font-medium">
+                        {formData.is_premium ? 'Oui — Réservé aux talents Premium/Pro' : 'Non — Ouvert à tous les talents'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                  <div className="grid gap-3">
