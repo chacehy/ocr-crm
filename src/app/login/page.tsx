@@ -44,8 +44,8 @@ export default function LoginPage() {
         className="w-full max-w-md relative z-10"
       >
         <div className="flex justify-center mb-10">
-          <Link href="/" className="text-4xl font-bold tracking-tighter text-primary flex items-center gap-3">
-             <Film className="w-9 h-9" />
+          <Link href="/" className="text-3xl md:text-4xl font-bold tracking-tighter text-primary flex items-center gap-2 md:gap-3">
+             <Film className="w-8 h-8 md:w-9 md:h-9" />
              <span>CastingConnect<span className="text-foreground">DZ</span></span>
           </Link>
         </div>
@@ -63,7 +63,7 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4 px-8">
+            <CardContent className="space-y-4 px-4 sm:px-8">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Email</Label>
                 <Input 
@@ -100,7 +100,7 @@ export default function LoginPage() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col gap-6 mt-4 pb-8">
+            <CardFooter className="flex flex-col gap-6 mt-4 pb-8 px-4 sm:px-8">
               <Button 
                 type="submit" 
                 className="w-full h-12 rounded-xl bg-primary text-black font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20" 

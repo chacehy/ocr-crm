@@ -143,14 +143,14 @@ export default async function DashboardPage() {
       {/* Dashboard Nav */}
       <nav className="bg-card/50 backdrop-blur-md border-b border-border/40 px-6 py-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold tracking-tighter text-primary flex items-center gap-2">
-            <Film className="w-6 h-6" />
-            <span>CastingConnect<span className="text-foreground">DZ</span></span>
+          <Link href="/" className="text-xl sm:text-2xl font-bold tracking-tighter text-primary flex items-center gap-2">
+            <Film className="w-6 h-6 shrink-0" />
+            <span className="truncate">CastingConnect<span className="text-foreground shrink-0">DZ</span></span>
           </Link>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 sm:gap-6 shrink-0">
               <Link href="/dashboard" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
                 <LayoutDashboard className="w-4 h-4" />
-                <span>Tableau de Bord</span>
+                <span className="hidden sm:inline">Tableau de Bord</span>
               </Link>
               <div className="flex items-center gap-3 pl-6 border-l border-border/40">
                 <div className="text-right hidden sm:block">
@@ -169,7 +169,7 @@ export default async function DashboardPage() {
       <main className="max-w-7xl mx-auto p-6 sm:p-10">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-          <div>
+          <div className="w-full md:w-auto">
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
               Bienvenue, <span className="text-primary italic">{profile.full_name || (profile.role === 'talent' ? 'Artiste' : 'Recruteur')}</span>
             </h1>
@@ -183,17 +183,17 @@ export default async function DashboardPage() {
             </div>
           </div>
           
-          <div className="flex flex-wrap gap-4 items-center">
+          <div className="w-full md:w-auto flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-center">
             {profile.role === 'talent' && (
-              <div className="flex flex-wrap gap-4">
-                <Link href="/dashboard/talent/edit-profile">
-                  <Button variant="outline" className="rounded-xl border-primary/20 bg-primary/5 text-primary h-14 px-8 font-bold text-lg hover:bg-primary/10 transition-all flex items-center gap-3">
+              <div className="grid grid-cols-1 sm:flex gap-4 w-full">
+                <Link href="/dashboard/talent/edit-profile" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full rounded-xl border-primary/20 bg-primary/5 text-primary h-14 px-8 font-bold text-lg hover:bg-primary/10 transition-all flex items-center justify-center gap-3">
                     <Settings className="w-6 h-6" /> 
                     <span>Modifier Profil</span>
                   </Button>
                 </Link>
-                <Link href="/castings">
-                  <Button className="rounded-xl bg-primary text-black h-14 px-8 font-bold text-lg shadow-[0_4px_15px_rgba(251,191,36,0.3)] hover:scale-105 transition-all flex items-center gap-3">
+                <Link href="/castings" className="w-full sm:w-auto">
+                  <Button className="w-full rounded-xl bg-primary text-black h-14 px-8 font-bold text-lg shadow-[0_4px_15px_rgba(251,191,36,0.3)] hover:scale-105 transition-all flex items-center justify-center gap-3">
                     <Film className="w-6 h-6" /> 
                     <span>Voir les Castings</span>
                     <span className="text-sm opacity-90 font-arabic border-l border-black/10 pl-2 ml-1" dir="rtl">تصفح الأدوار</span>

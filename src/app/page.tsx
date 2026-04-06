@@ -60,7 +60,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.7, ease: "easeOut" }}
-            className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter mb-8 leading-[1.05]"
+            className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tighter mb-8 leading-[1.05]"
           >
             Le Talent Rencontre <br className="hidden sm:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-amber-400 to-yellow-500">L'Opportunité.</span>
@@ -81,13 +81,13 @@ export default function LandingPage() {
             transition={{ delay: 0.3, duration: 0.6 }}
             className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto"
           >
-            <Link href="/signup?role=talent">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full h-16 px-8 text-lg font-bold w-full sm:w-auto shadow-[0_0_40px_rgba(251,191,36,0.3)] hover:shadow-[0_0_60px_rgba(251,191,36,0.5)] group transition-all duration-300">
+            <Link href="/signup?role=talent" className="block w-full sm:w-auto">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full h-16 px-8 text-lg font-bold w-full shadow-[0_0_40px_rgba(251,191,36,0.3)] hover:shadow-[0_0_60px_rgba(251,191,36,0.5)] group transition-all duration-300">
                 Je suis un Talent <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link href="/signup?role=recruiter">
-              <Button variant="outline" size="lg" className="bg-background/50 backdrop-blur-md rounded-full h-16 px-8 text-lg font-bold w-full sm:w-auto border-border hover:bg-muted text-foreground transition-all duration-300 group">
+            <Link href="/signup?role=recruiter" className="block w-full sm:w-auto">
+              <Button variant="outline" size="lg" className="bg-background/50 backdrop-blur-md rounded-full h-16 px-8 text-lg font-bold w-full border-border hover:bg-muted text-foreground transition-all duration-300 group">
                 Je Recrute <Search className="ml-2 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
               </Button>
             </Link>
@@ -97,20 +97,20 @@ export default function LandingPage() {
 
       {/* Trust & Stats Strip */}
       <section className="border-y border-border/40 bg-card/30 backdrop-blur-md py-12 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-border/50">
-          <div className="flex flex-col items-center justify-center space-y-2">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-y-12 sm:gap-y-8 md:gap-y-0 gap-x-4 text-center md:divide-x divide-border/50">
+          <div className="flex flex-col items-center justify-center space-y-2 md:pl-0">
             <div className="text-4xl md:text-5xl font-black text-foreground">5 000+</div>
             <div className="text-xs md:text-sm text-primary uppercase tracking-widest font-bold">Talents Inscrits</div>
           </div>
-          <div className="flex flex-col items-center justify-center space-y-2 pl-8">
+          <div className="flex flex-col items-center justify-center space-y-2 md:pl-8">
             <div className="text-4xl md:text-5xl font-black text-foreground">250+</div>
             <div className="text-xs md:text-sm text-primary uppercase tracking-widest font-bold">Maisons de Prod</div>
           </div>
-          <div className="flex flex-col items-center justify-center space-y-2 pl-8">
+          <div className="flex flex-col items-center justify-center space-y-2 md:pl-8">
             <div className="text-4xl md:text-5xl font-black text-foreground">1 200+</div>
             <div className="text-xs md:text-sm text-primary uppercase tracking-widest font-bold">Matchs Réussis</div>
           </div>
-          <div className="flex flex-col items-center justify-center space-y-2 pl-8">
+          <div className="flex flex-col items-center justify-center space-y-2 md:pl-8">
             <div className="text-4xl md:text-5xl font-black text-foreground">0</div>
             <div className="text-xs md:text-sm text-primary uppercase tracking-widest font-bold">Frais Cachés</div>
           </div>
@@ -263,7 +263,7 @@ export default function LandingPage() {
           <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
             Rejoignez des milliers de talents et de recruteurs qui ont déjà transformé leur façon de travailler.
           </p>
-          <Link href="/signup">
+          <Link href="/signup" className="block w-full sm:w-auto">
             <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-16 w-full sm:w-80 text-xl font-black shadow-[0_0_40px_rgba(251,191,36,0.4)] hover:shadow-[0_0_60px_rgba(251,191,36,0.6)] transition-all group">
               Commencer Maintenant <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-2 transition-transform" />
             </Button>
